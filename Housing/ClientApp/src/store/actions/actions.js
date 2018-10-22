@@ -1,6 +1,38 @@
-﻿const requestWeatherForecastsType = 'REQUEST_WEATHER_FORECASTS';
+const requestWeatherForecastsType = 'REQUEST_WEATHER_FORECASTS';
 const receiveWeatherForecastsType = 'RECEIVE_WEATHER_FORECASTS';
-const initialState = { forecasts: [], isLoading: false };
+
+export const changeMain = text => {
+  return {
+    type: 'CHANGE_MAIN',
+    text
+  }
+};
+
+export const changeSide = text => {
+  return {
+    type: 'CHANGE_SIDE',
+    text
+  }
+};
+
+export const changeDrink = text => {
+  return {
+    type: 'CHANGE_DRINK',
+    text
+  }
+};
+
+export const increment = () => {
+  return {
+    type: 'INCREMENT_COUNT'
+  }
+};
+
+export const decrement = () => {
+  return {
+    type: 'DECREMENT_COUNT'
+  }
+};
 
 export const actionCreators = {
   requestWeatherForecasts: startDateIndex => async (dispatch, getState) => {
@@ -17,27 +49,4 @@ export const actionCreators = {
 
     dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
   }
-};
-
-export const reducer = (state, action) => {
-  state = state || initialState;
-
-  if (action.type === requestWeatherForecastsType) {
-    return {
-      ...state,
-      startDateIndex: action.startDateIndex,
-      isLoading: true
-    };
-  }
-
-  if (action.type === receiveWeatherForecastsType) {
-    return {
-      ...state,
-      startDateIndex: action.startDateIndex,
-      forecasts: action.forecasts,
-      isLoading: false
-    };
-  }
-
-  return state;
 };

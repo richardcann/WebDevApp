@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { actionCreators } from '../store/WeatherForecasts';
+import { actions } from '../store/actions';
 
 class FetchData extends Component {
   componentWillMount() {
@@ -67,5 +67,5 @@ function renderPagination(props) {
 
 export default connect(
   state => state.weatherForecasts,
-  dispatch => bindActionCreators(actionCreators, dispatch)
+  dispatch => bindActionCreators(actions.actionCreators, dispatch)
 )(FetchData);
