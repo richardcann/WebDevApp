@@ -15,9 +15,9 @@ namespace Housing.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly WeatherContext _context;
+        private readonly DataContext _context;
 
-        public SampleDataController(WeatherContext context)
+        public SampleDataController(DataContext context)
         {
             _context = context;
         }

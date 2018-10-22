@@ -12,5 +12,6 @@ namespace Housing.Models
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<WeatherForecast> Weather { get; set; }
     }
 }
