@@ -90,28 +90,43 @@ namespace Housing
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            // 1) Exception/error handling
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             else
             {
+                // 2) HTTP Strict Transport Security Protocol
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
-            // global cors policy
+            // ?) global Cross Origin Request policy
             app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
 
+            // 3) HTTPS redirection
             app.UseHttpsRedirection();
+
+            // 4) Static File Server
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+
+            // 5) Cookie Policy Enforcement
+            app.UseCookiePolicy();
+
+            // 6) Authentication
             app.UseAuthentication();
 
+            // 7) Session
+            app.UseSession();
+
+            // 8) MVC
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
