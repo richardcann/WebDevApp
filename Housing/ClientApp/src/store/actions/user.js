@@ -2,7 +2,6 @@ import { userHelper } from '../helpers/userHelper';
 import { history } from '../helpers/history';
 
 export const userActions = {
-  register,
   getAll,
   delete: _delete
 };
@@ -39,7 +38,7 @@ export function logout() {
   return { type: 'LOGOUT' };
 }
 
-function register(user) {
+export function register(user) {
   return dispatch => {
     dispatch(request(user));
 
@@ -47,6 +46,7 @@ function register(user) {
       user => {
         dispatch(success());
         history.push('/login');
+        console.log('Registration successful');
         //dispatch(alertActions.success('Registration successful'));
       },
       error => {

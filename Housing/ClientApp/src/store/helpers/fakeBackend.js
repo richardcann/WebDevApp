@@ -1,7 +1,5 @@
 // array in local storage for registered users
-let users = JSON.parse(localStorage.getItem('users')) || [
-  { username: 'rc', password: 'rc' }
-];
+let users = JSON.parse(localStorage.getItem('users')) || [];
 
 export function configureFakeBackend() {
   let realFetch = window.fetch;
@@ -13,7 +11,6 @@ export function configureFakeBackend() {
         if (url.endsWith('users/authenticate') && opts.method === 'POST') {
           // get parameters from post request
           let params = JSON.parse(opts.body);
-
           // find if any user matches login credentials
           let filteredUsers = users.filter(user => {
             return (
@@ -21,7 +18,7 @@ export function configureFakeBackend() {
               user.password === params.password
             );
           });
-
+          console.log(users);
           if (filteredUsers.length) {
             // if login details are valid return user details and fake jwt token
             let user = filteredUsers[0];
@@ -30,6 +27,8 @@ export function configureFakeBackend() {
               username: user.username,
               firstName: user.firstName,
               lastName: user.lastName,
+              role: user.role,
+              email: user.email,
               token: 'fake-jwt-token'
             };
             resolve({
@@ -89,7 +88,7 @@ export function configureFakeBackend() {
         }
 
         // register user
-        if (url.endsWith('/users/register') && opts.method === 'POST') {
+        if (url.endsWith('users/register') && opts.method === 'POST') {
           // get new user object from post body
           let newUser = JSON.parse(opts.body);
 
