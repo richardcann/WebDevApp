@@ -107,11 +107,10 @@ namespace Housing
                 .AllowAnyHeader()
                 .AllowCredentials());
 
-            app.UseAuthentication();
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {
