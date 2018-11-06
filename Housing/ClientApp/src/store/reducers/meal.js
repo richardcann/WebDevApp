@@ -1,8 +1,7 @@
-const initialState = {main: null, side: null, drink: null};
+const initialState = { main: null, side: null, drink: null };
 
 export const meal = (state, action) => {
   state = state || initialState;
-
 
   if (action.type === 'CHANGE_MAIN') {
     return { ...state, main: action.text };
