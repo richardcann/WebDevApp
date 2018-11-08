@@ -2,6 +2,7 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { actions } from '../store/actions';
+import PropertyCard from './PropertyCard';
 
 const Counter = props => (
   <div>
@@ -9,17 +10,20 @@ const Counter = props => (
 
     <p>This is a simple example of a React component.</p>
 
-    <p>Current count: <strong>{props.count}</strong></p>
+    <p>
+      Current count: <strong>{props.count}</strong>
+    </p>
 
     <button onClick={props.increment}>Increment</button>
     <button onClick={props.decrement}>Decrement</button>
+    <PropertyCard />
   </div>
 );
 
 const mapStateToProps = state => {
   return {
-      ...state.counter
-  }
+    ...state.counter
+  };
 };
 
 const mapDispatchToProps = dispatch => {
@@ -30,10 +34,13 @@ const mapDispatchToProps = dispatch => {
     decrement: () => {
       dispatch(actions.decrement());
     }
-  }
+  };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Counter);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Counter);
 
 /*export default connect(
   state => state.counter,
