@@ -2,6 +2,7 @@ import 'antd/lib/card/style/css';
 import { Card } from 'antd';
 import React from 'react';
 import MasonryLayout from '../MasonryLayout';
+import MapCard from '../MapCard';
 
 const { Meta } = Card;
 
@@ -54,16 +55,6 @@ function OverviewCard(props) {
   );
 }
 
-const gridStyle = {
-  width: '25%',
-  textAlign: 'center'
-};
-
-const imageStyle = {
-  'max-width': '100%',
-  'max-height': '100%'
-};
-
 function PhotosCard(props) {
   const { photos } = props;
   return (
@@ -102,7 +93,8 @@ class PropertyCard extends React.Component {
           photoUrl={photos[0].url}
         />
       ),
-      photos: <PhotosCard photos={photos} />
+      photos: <PhotosCard photos={photos} />,
+      map: <MapCard />
     };
     return (
       <div style={{ width: '40em' }}>
