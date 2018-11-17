@@ -19,6 +19,7 @@ import { configureFakeBackend } from './store/helpers/fakeBackend';
 // Get the application-wide store instance, prepopulating with state from the server where available.
 const initialState = window.initialReduxState;
 const store = configureStore(history, initialState);
+localStorage.clear();
 
 const rootElement = document.getElementById('root');
 configureFakeBackend();
