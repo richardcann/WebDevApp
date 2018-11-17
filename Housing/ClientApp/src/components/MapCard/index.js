@@ -31,18 +31,17 @@ import React from 'react';
 import L from 'leaflet';
 
 const style = {
-  width: '15em',
   height: '300px'
 };
 
-class Map extends React.Component {
+class PropMap extends React.Component {
   state = {
     lat: 51.505,
     lng: -0.09
   };
   componentDidMount() {
     // create map
-    this.map = L.map('map', {
+    this.map = L.map(this.props.id, {
       center: [51.505, -0.09],
       zoom: 16,
       layers: [
@@ -64,8 +63,8 @@ class Map extends React.Component {
     }
   }
   render() {
-    return <div id="map" style={style} />;
+    return <div id={this.props.id} style={style} />;
   }
 }
 
-export default Map;
+export default PropMap;

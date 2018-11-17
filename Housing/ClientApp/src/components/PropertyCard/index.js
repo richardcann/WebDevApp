@@ -11,10 +11,10 @@ const tabList = [
     key: 'overview',
     tab: 'overview'
   },
-  {
+  /*{
     key: 'photos',
     tab: 'photos'
-  },
+  },*/
   {
     key: 'map',
     tab: 'map'
@@ -93,8 +93,8 @@ class PropertyCard extends React.Component {
           photoUrl={photos[0].url}
         />
       ),
-      photos: <PhotosCard photos={photos} />,
-      map: <MapCard />
+      //photos: <PhotosCard photos={photos} />,
+      map: <MapCard id={this.props.id} />
     };
     return (
       <div style={{ width: '40em' }}>
