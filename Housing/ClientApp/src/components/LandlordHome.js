@@ -4,6 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropertyCard from './PropertyCard';
 import PropertyForm from './PropertyForm';
+import MessageModal from './MessageModal';
 import {
   exampleProperty,
   disapprovedProperty,
@@ -21,7 +22,10 @@ function LandlordHome(props) {
     editProperty,
     submitProperty,
     currentProperties,
-    setProperties
+    setProperties,
+    showDisapproved,
+    showCurrentDisapproved,
+    hideDisapproved
   } = props;
 
   if (typeof currentProperties === 'undefined') {
@@ -86,9 +90,17 @@ function LandlordHome(props) {
       <PropertyForm
         visible={editingProperty !== null && editingProperty >= 0}
         property={currentProperties ? currentProperties[editingProperty] : null}
-        onCancel={submitEdit}
+        onCancel={submitProperty}
         onSubmit={submitEdit}
       />
+      {typeof showDisapproved !== 'undefined' && showDisapproved !== null ? (
+        <MessageModal
+          visible={showDisapproved !== null}
+          onCancel={hideDisapproved}
+          title={currentProperties[showDisapproved].message.author}
+          message={currentProperties[showDisapproved].message.description}
+        />
+      ) : null}
       {currentProperties
         ? currentProperties.map((current, index) => {
             const color =
@@ -103,7 +115,14 @@ function LandlordHome(props) {
                 property={current}
                 extra={
                   <div style={style}>
-                    <Tag color={color}>{current.status}</Tag>
+                    <Tag
+                      onClick={() => {
+                        color === 'red' ? showCurrentDisapproved(index) : null;
+                      }}
+                      color={color}
+                    >
+                      {current.status}
+                    </Tag>
                     <a onClick={() => handleClick(index)}>Edit</a>
                   </div>
                 }
@@ -115,11 +134,17 @@ function LandlordHome(props) {
   );
 }
 function mapStateToProps(state) {
-  const { addingProperty, editingProperty, currentProperties } = state.landlord;
+  const {
+    addingProperty,
+    editingProperty,
+    currentProperties,
+    showDisapproved
+  } = state.landlord;
   return {
     addingProperty,
     editingProperty,
-    currentProperties
+    currentProperties,
+    showDisapproved
   };
 }
 
@@ -139,6 +164,12 @@ const mapDispatchToProps = dispatch => {
     },
     setProperties: properties => {
       dispatch(landlordActions.setProperties(properties));
+    },
+    showCurrentDisapproved: index => {
+      dispatch(landlordActions.showCurrentDisapproved(index));
+    },
+    hideDisapproved: () => {
+      dispatch(landlordActions.hideDisapproved());
     }
   };
 };

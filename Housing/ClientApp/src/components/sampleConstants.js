@@ -61,5 +61,9 @@ export const disapprovedProperty = {
     }
   ],
   position: [51.505, -0.09],
-  status: 'disapproved'
+  status: 'disapproved',
+  message: {
+    author: 'Lucy JOnes',
+    description: 'Too dirty'
+  }
 };

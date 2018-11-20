@@ -28,6 +28,16 @@ export function landlord(state, action) {
         ...state,
         currentProperties: action.properties
       };
+    case 'SHOW_DISAPPROVED':
+      return {
+        ...state,
+        showDisapproved: action.index
+      };
+    case 'HIDE_DISAPPROVED':
+      return {
+        ...state,
+        showDisapproved: null
+      };
     default:
       return state;
   }
