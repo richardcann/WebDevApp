@@ -5,6 +5,7 @@ import { counter } from './counter';
 import { weatherForecasts } from './weatherForecasts';
 import { users } from './user';
 import { landlord } from './landlord';
+import { officer } from './officer';
 
 const mealAppReducers = combineReducers({
   meal,
@@ -12,6 +13,7 @@ const mealAppReducers = combineReducers({
   weatherForecasts,
   users,
   landlord,
+  officer,
   routing: routerReducer
 });
 

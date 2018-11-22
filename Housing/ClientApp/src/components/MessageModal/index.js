@@ -10,21 +10,32 @@ class Demo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      property: this.props.property
+      message: this.props.message,
+      notEdit: this.props.noEdit
     };
   }
 
   render() {
-    const { visible, onCancel, title, message } = this.props;
+    const { visible, onCancel, title, onSubmit } = this.props;
+    const { message, notEdit } = this.state;
     return (
       <Modal
         visible={visible}
-        title={`${title} left this message:`}
+        title={`${title}`}
         okText="Ok"
         onCancel={onCancel}
+        onOk={() => (onSubmit ? onSubmit(message) : onCancel())}
       >
-        {/*<TextArea value={message ? message : ''} disabled={!!message} onChange={() => {}}/>*/}
-        <p>{message}</p>
+        {message && notEdit ? (
+          <p>{message}</p>
+        ) : (
+          <TextArea
+            value={message ? message : ''}
+            onChange={e => {
+              this.setState({ message: e.target.value });
+            }}
+          />
+        )}
       </Modal>
     );
   }

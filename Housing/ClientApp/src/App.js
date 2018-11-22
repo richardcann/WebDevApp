@@ -9,7 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Login from './components/Login';
 import Register from './components/Register';
 import MapCard from './components/MapCard';
-import Form from './components/PropertyForm';
+import OfficerHome from './components/OfficerHome';
 import { PrivateRoute } from './components/PrivateRoute';
 
 export default () => (
@@ -22,7 +22,7 @@ export default () => (
       <Route path="/register" component={Register} />
       <Route path="/map" component={MapCard} />
       <Route path="/landlord" component={LandlordHome} />
-      <Route path="/form" component={Form} />
+      <Route path="/officer" component={OfficerHome} />
     </Layout>
   </ErrorBoundary>
 );
