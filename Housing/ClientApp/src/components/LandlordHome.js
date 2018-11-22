@@ -97,6 +97,7 @@ function LandlordHome(props) {
         <MessageModal
           visible={showDisapproved !== null}
           onCancel={hideDisapproved}
+          noEdit={true}
           title={currentProperties[showDisapproved].message.author}
           message={currentProperties[showDisapproved].message.description}
         />
