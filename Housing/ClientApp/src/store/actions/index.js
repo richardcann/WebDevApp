@@ -1,4 +1,6 @@
 import * as actions from './actions';
 import * as userActions from './user';
+import * as landlordActions from './landlord';
+import * as officerActions from './officer';
 
-export { actions, userActions };
+export { actions, userActions, landlordActions, officerActions };
