@@ -1,15 +1,29 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import PropertyCard from './PropertyCard';
-import { exampleProperty } from './sampleConstants';
+import StudentHome from './StudentHome';
+import LandlordHome from './LandlordHome';
+import OfficerHome from './OfficerHome';
 
-const Home = props => (
-  <div>
-    <PropertyCard id={'1'} property={exampleProperty} />
-    <PropertyCard id={'2'} property={exampleProperty} />
-    <PropertyCard id={'3'} property={exampleProperty} />
-    <PropertyCard id={'4'} property={exampleProperty} />
-  </div>
-);
+function Home(props) {
+  const { user } = props;
+  return (
+    <div>
+      {user && user.role === 'student' ? (
+        <StudentHome />
+      ) : user.role === 'landlord' ? (
+        <LandlordHome />
+      ) : (
+        <OfficerHome />
+      )}
+    </div>
+  );
+}
 
-export default connect()(Home);
+function mapStateToProps(state) {
+  const { user } = state.users;
+  return {
+    user
+  };
+}
+
+export default connect(mapStateToProps)(Home);
