@@ -1,17 +1,43 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { exampleProperty } from './sampleConstants';
 import PropertyCard from './PropertyCard';
+import { studentActions } from '../store/actions';
 
 function StudentHome(props) {
+  const { properties, getProperties } = props;
+
+  if (typeof properties === 'undefined') {
+    getProperties();
+  }
   return (
     <div>
-      <PropertyCard id={'1'} property={exampleProperty} />
-      <PropertyCard id={'2'} property={exampleProperty} />
-      <PropertyCard id={'3'} property={exampleProperty} />
-      <PropertyCard id={'4'} property={exampleProperty} />
+      {typeof properties !== 'undefined' && properties !== null
+        ? properties.map(property => {
+            return (
+              <PropertyCard id={property.id.toString()} property={property} />
+            );
+          })
+        : null}
     </div>
   );
 }
 
-export default connect()(StudentHome);
+function mapStateToProps(state) {
+  const { properties } = state.student;
+  return {
+    properties
+  };
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    getProperties: () => {
+      dispatch(studentActions.getApprovedProperties());
+    }
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(StudentHome);

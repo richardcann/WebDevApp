@@ -44,7 +44,7 @@ export function register(user) {
 
     userHelper.register(user).then(
       user => {
-        dispatch(success());
+        dispatch(success(user));
         history.push('/login');
         console.log('Registration successful');
         //dispatch(alertActions.success('Registration successful'));

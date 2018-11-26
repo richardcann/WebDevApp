@@ -41,7 +41,7 @@ function PhotosCard(props) {
   return (
     <Carousel effect="fade" autoplay>
       {photos.map(photo => {
-        return <img alt="example" src={photo.url} />;
+        return <img alt="example" src={photo} />;
       })}
     </Carousel>
   );
@@ -58,24 +58,30 @@ class PropertyCard extends React.Component {
   };
 
   render() {
-    const { property } = this.props;
-    const { title, description, photos, position } = property;
+    const { property, id } = this.props;
+    const {
+      addressLine1,
+      propertyDescription,
+      images,
+      latitude,
+      longitude
+    } = property;
     const contentList = {
       Overview: (
         <OverviewCard
-          title={title}
-          description={description}
-          photoUrl={photos ? photos[0].url : ''}
+          title={addressLine1}
+          description={propertyDescription}
+          photoUrl={images ? images[0] : ''}
         />
       ),
-      Photos: <PhotosCard photos={photos} />,
-      Map: <MapCard id={this.props.id} position={position} />
+      Photos: <PhotosCard photos={images} />,
+      Map: <MapCard id={id} position={[latitude, longitude]} />
     };
     return (
       <div style={{ width: '40em' }}>
         <Card
           style={{ width: '100%' }}
-          title={title}
+          title={addressLine1}
           extra={this.props.extra}
           tabList={tabList}
           activeTabKey={this.state.key}

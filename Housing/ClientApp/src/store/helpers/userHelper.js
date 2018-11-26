@@ -3,6 +3,7 @@ export const userHelper = {
   logout,
   register,
   getAll,
+  getApprovedProperties,
   getById,
   update,
   delete: _delete
@@ -19,6 +20,15 @@ function authHeader() {
   }
 }
 
+function getApprovedProperties() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/approved`, requestOptions).then(handleResponse);
+}
+
 function login(username, password) {
   const requestOptions = {
     method: 'POST',
@@ -26,7 +36,7 @@ function login(username, password) {
     body: JSON.stringify({ username, password })
   };
 
-  return fetch(`users/authenticate`, requestOptions)
+  return fetch(`api/users/authenticate`, requestOptions)
     .then(handleResponse)
     .then(user => {
       // login successful if there's a jwt token in the response
@@ -69,7 +79,7 @@ function register(user) {
     body: JSON.stringify(user)
   };
 
-  return fetch(`users/register`, requestOptions).then(handleResponse);
+  return fetch(`api/users/register`, requestOptions).then(handleResponse);
 }
 
 function update(user) {

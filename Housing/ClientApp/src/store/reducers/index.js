@@ -6,6 +6,7 @@ import { weatherForecasts } from './weatherForecasts';
 import { users } from './user';
 import { landlord } from './landlord';
 import { officer } from './officer';
+import { student } from './student';
 
 const mealAppReducers = combineReducers({
   meal,
@@ -14,6 +15,7 @@ const mealAppReducers = combineReducers({
   users,
   landlord,
   officer,
+  student,
   routing: routerReducer
 });
 

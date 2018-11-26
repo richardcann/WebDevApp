@@ -8,7 +8,7 @@ export function configureFakeBackend() {
       // wrap in timeout to simulate server api call
       setTimeout(() => {
         // authenticate
-        if (url.endsWith('users/authenticate') && opts.method === 'POST') {
+        if (url.endsWith('api/users/authenticate') && opts.method === 'POST') {
           // get parameters from post request
           let params = JSON.parse(opts.body);
           // find if any user matches login credentials
@@ -19,7 +19,8 @@ export function configureFakeBackend() {
             );
           });
           console.log(users);
-          if (filteredUsers.length) {
+          realFetch(url, opts).then(response => resolve(response));
+          /*if (filteredUsers.length) {
             // if login details are valid return user details and fake jwt token
             let user = filteredUsers[0];
             let responseJson = {
@@ -38,7 +39,7 @@ export function configureFakeBackend() {
           } else {
             // else return error
             reject('Username or password is incorrect');
-          }
+          }*/
 
           return;
         }
@@ -88,7 +89,36 @@ export function configureFakeBackend() {
         }
 
         // register user
-        if (url.endsWith('users/register') && opts.method === 'POST') {
+        if (url.endsWith('api/properties/approved') && opts.method === 'POST') {
+          // get new user object from post body
+          /*let newUser = JSON.parse(opts.body);
+
+          // validation
+          let duplicateUser = users.filter(user => {
+            return user.username === newUser.username;
+          }).length;
+          if (duplicateUser) {
+            reject('Username "' + newUser.username + '" is already taken');
+            return;
+          }
+
+          // save new user
+          newUser.id = users.length
+              ? Math.max(...users.map(user => user.id)) + 1
+              : 1;
+          users.push(newUser);
+          localStorage.setItem('users', JSON.stringify(users));
+
+          // respond 200 OK
+          resolve({ok: true, text: () => Promise.resolve()});*/
+
+          realFetch(url, opts).then(response => resolve(response));
+
+          return;
+        }
+
+        // register user
+        if (url.endsWith('api/users/register') && opts.method === 'POST') {
           // get new user object from post body
           let newUser = JSON.parse(opts.body);
 
@@ -110,6 +140,8 @@ export function configureFakeBackend() {
 
           // respond 200 OK
           resolve({ ok: true, text: () => Promise.resolve() });
+
+          realFetch(url, opts).then(response => resolve(response));
 
           return;
         }
