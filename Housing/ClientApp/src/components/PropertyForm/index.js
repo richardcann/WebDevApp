@@ -37,13 +37,6 @@ class Demo extends React.Component {
     return e && e.fileList;
   };
 
-  /*onFormChange = (value, index) => {
-    let prop = {...this.state.property};
-    prop[index] = value;
-    console.log(prop);
-    this.setState({property: {...prop}})
-  };*/
-
   render() {
     const { getFieldDecorator } = this.props.form;
     const { visible, onCancel, property } = this.props;
@@ -65,7 +58,11 @@ class Demo extends React.Component {
           <FormItem {...formItemLayout} label="Title">
             {getFieldDecorator('title', {
               rules: [
-                { required: true, message: 'Please input property title' }
+                {
+                  required: true,
+                  message: 'Please input property title',
+                  max: 50
+                }
               ],
               initialValue: currentTitle
             })(<Input />)}
@@ -88,7 +85,12 @@ class Demo extends React.Component {
           <FormItem {...formItemLayout} label="Description">
             {getFieldDecorator('description', {
               rules: [
-                { required: true, message: 'Please input property description' }
+                {
+                  required: true,
+                  message:
+                    'Please input property description under 200 characters',
+                  max: 200
+                }
               ],
               initialValue: currentDescription
             })(<TextArea />)}
