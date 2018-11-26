@@ -7,6 +7,9 @@ export const userHelper = {
   getLandlordProps,
   submitEdit,
   submitNew,
+  getOfficerProps,
+  submitRejection,
+  approveProperty,
   getById,
   update,
   delete: _delete
@@ -39,6 +42,38 @@ function getLandlordProps() {
   };
 
   return fetch(`api/properties/myproperties`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function getOfficerProps() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/pending`, requestOptions).then(handleResponse);
+}
+
+function submitRejection(index, message) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify({ description: message })
+  };
+
+  return fetch(`api/rejections/add/${index}`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function approveProperty(index) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/approve/${index}`, requestOptions).then(
     handleResponse
   );
 }
