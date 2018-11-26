@@ -25,19 +25,14 @@ function LandlordHome(props) {
     setProperties,
     showDisapproved,
     showCurrentDisapproved,
-    hideDisapproved
+    hideDisapproved,
+    submitNewProperty,
+    getProperties
   } = props;
 
   if (typeof currentProperties === 'undefined') {
-    setProperties([exampleProperty, disapprovedProperty, pendingProperty]);
+    getProperties();
   }
-  /*const requestOptions = {
-    method: 'GET'
-  };
-
-  fetch('https://nominatim.openstreetmap.org/search?format=json&q=6+University+Road+Southampton', requestOptions).then((response) => {
-    response.json().then((data) => console.log(data));
-  });*/
 
   const handleClick = property => {
     editProperty(property);
@@ -51,10 +46,10 @@ function LandlordHome(props) {
     currentProperties[editingProperty] = {
       ...currentProperties[editingProperty],
       ...values,
-      status: 'pending'
+      propertyStatus: 0
     };
     setProperties(currentProperties);
-    submitProperty();
+    submitProperty(currentProperties[editingProperty]);
   };
 
   const handleNewProperty = values => {
@@ -71,12 +66,12 @@ function LandlordHome(props) {
       response.json().then(data => {
         const lat = data[0].lat;
         const lon = data[0].lon;
-        const position = [lat, lon];
-        values = { ...values, position };
-        currentProperties.push({ ...values, status: 'pending' });
+        values = { ...values, latitude: lat, longitude: lon };
+        const newProperty = { ...values, propertyStatus: 0 };
+        currentProperties.push(newProperty);
         console.log(currentProperties);
         setProperties(currentProperties);
-        propertyAdded();
+        submitNewProperty(newProperty);
       });
     });
   };
@@ -115,18 +110,18 @@ function LandlordHome(props) {
           visible={showDisapproved !== null}
           onCancel={hideDisapproved}
           noEdit={true}
-          title={currentProperties[showDisapproved].message.author}
-          message={currentProperties[showDisapproved].message.description}
+          title={'Rejection Reason: '}
+          message={currentProperties[showDisapproved].rejections[0].description}
         />
       ) : null}
       {currentProperties
         ? currentProperties.map((current, index) => {
             const color =
-              current.status === 'approved' || current.status === 'disapproved'
-                ? current.status === 'approved'
-                  ? 'green'
-                  : 'red'
-                : 'orange';
+              current.propertyStatus === 0 || current.propertyStatus === 2
+                ? current.propertyStatus === 1
+                  ? 'red'
+                  : 'orange'
+                : 'green';
             return (
               <PropertyCard
                 id={index.toString()}
@@ -139,7 +134,11 @@ function LandlordHome(props) {
                       }}
                       color={color}
                     >
-                      {current.status}
+                      {current.propertyStatus === 0
+                        ? 'pending'
+                        : current.propertyStatus === 2
+                          ? 'rejected'
+                          : 'approved'}
                     </Tag>
                     <a onClick={() => handleClick(index)}>Edit</a>
                   </div>
@@ -177,11 +176,17 @@ const mapDispatchToProps = dispatch => {
     editProperty: property => {
       dispatch(landlordActions.editProperty(property));
     },
-    submitProperty: () => {
-      dispatch(landlordActions.submitProperty());
+    submitEditedProperty: property => {
+      dispatch(landlordActions.submitEditedProperty(property));
+    },
+    submitNewProperty: property => {
+      dispatch(landlordActions.submitNewProperty(property));
     },
     setProperties: properties => {
       dispatch(landlordActions.setProperties(properties));
+    },
+    getProperties: () => {
+      dispatch(landlordActions.getProperties());
     },
     showCurrentDisapproved: index => {
       dispatch(landlordActions.showCurrentDisapproved(index));

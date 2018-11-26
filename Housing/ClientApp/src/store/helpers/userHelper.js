@@ -4,6 +4,9 @@ export const userHelper = {
   register,
   getAll,
   getApprovedProperties,
+  getLandlordProps,
+  submitEdit,
+  submitNew,
   getById,
   update,
   delete: _delete
@@ -27,6 +30,39 @@ function getApprovedProperties() {
   };
 
   return fetch(`api/properties/approved`, requestOptions).then(handleResponse);
+}
+
+function getLandlordProps() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/myproperties`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function submitEdit(property) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify(property)
+  };
+
+  return fetch(`api/properties/edit/${property.id}`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function submitNew(property) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify(property)
+  };
+
+  return fetch(`api/properties/add`, requestOptions).then(handleResponse);
 }
 
 function login(username, password) {
