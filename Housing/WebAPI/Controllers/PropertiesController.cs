@@ -4,24 +4,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper.QueryableExtensions;
 using AutoMapper;
 using Housing.WebAPI.Models.InternalDTO;
 using Housing.WebAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Housing.WebAPI.Utils;
 using Housing.WebAPI.Models.ClientServerDTO;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Housing.WebAPI.Helpers;
-using static System.Net.WebRequestMethods;
-using Microsoft.AspNetCore.StaticFiles;
+using System.Net.Http;
+using System.Net;
 
 namespace Housing.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PropertiesController : ControllerBase
+    public class PropertiesController : Controller
     {
         private IMapper _mapper;
         private readonly HousingContext _context;
@@ -57,29 +53,29 @@ namespace Housing.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("pending")]
-        public IEnumerable<BasicProperty> GetPending()
+        public IActionResult GetPending()
         {
             var userCp = HttpContext.User;
             if (TokenVerifier.CheckOfficer(userCp))
             {
-                return GetProperties(Property.VerificationStatus.Pending);
+                return Ok(GetProperties(Property.VerificationStatus.Pending));
             }
-            return null;
+            return Unauthorized();
         }
 
         // GET: api/myproperties
         [Authorize]
         [HttpGet]
         [Route("myproperties")]
-        public List<BPIRejections> GetMyProperties()
+        public IActionResult GetMyProperties()
         {
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
             if (landlord != null)
             {
-                return GetMyProperties(landlord);
+                return Ok(GetMyProperties(landlord));
             }
-            return null;
+            return NotFound();
         }
         
         // GET: api/properties/5
@@ -93,9 +89,9 @@ namespace Housing.WebAPI.Controllers
                 return BadRequest(ModelState);
             }
             
-            var @property = await _context.Property.FindAsync(id);
+            var property = await _context.Property.FindAsync(id);
 
-            if (@property == null)
+            if (property == null)
             {
                 return NotFound();
             }
@@ -103,7 +99,7 @@ namespace Housing.WebAPI.Controllers
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
             
-            if (landlord != null)
+            if (landlord == property.AppUserRef)
             {
                 return Ok(GetMyPropertyByID(id, landlord));
             } else
@@ -127,9 +123,9 @@ namespace Housing.WebAPI.Controllers
             //Check all attributes are there? Will the binding be successful?
 
             var userCp = HttpContext.User;
-            var @property = await _context.Property.FindAsync(id);
+            var property = await _context.Property.FindAsync(id);
 
-            if (@property == null)
+            if (property == null)
             {
                 return NotFound();
             }
@@ -138,12 +134,18 @@ namespace Housing.WebAPI.Controllers
             {
                 property.PropertyStatus = Property.VerificationStatus.Approved;
                 property.Timestamp = DateTime.Now;
-                property.Rejections = null;
+
+                List<Rejection> rejections = _context.Rejection.Where(i => i.PropertyRef == id).ToList();
+                foreach(Rejection r in rejections)
+                {
+                    _context.Rejection.Remove(r);
+                }
+
                 await _context.SaveChangesAsync();
 
                 return Ok();
             }
-            return BadRequest();
+            return Unauthorized();
         }
 
         // POST: api/properties/edit/{id}
@@ -157,84 +159,82 @@ namespace Housing.WebAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            //Check all attributes are there? Will the binding be successful?
-
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
-            var @property = await _context.Property.FindAsync(id);
+            
+            Property currentProperty = await _context.Property.FindAsync(id);
 
-            if (@property == null)
+            if (currentProperty == null)
             {
                 return NotFound();
             }
 
-            if (landlord == property.AppUserRef)
+            if (landlord == null || landlord != currentProperty.AppUserRef)
             {
-                List<BasicImage> images = new List<BasicImage>();
-
-                int imgCount = 0;
-                foreach (string imageStr in addProperty.Images)
-                {
-                    //Only allowing these types of files to be uploaded
-                    //image/jpeg
-                    //image/png
-
-                    if (imageStr.IndexOf("data:image/") != 0)
-                    {
-                        return BadRequest();
-                    }
-
-                    int pStart = imageStr.IndexOf("data:image/") + "data:image/".Length;
-                    int pEnd = imageStr.IndexOf(";");
-                    string mime = imageStr.Substring(pStart, pEnd - pStart);
-
-                    if (mime == "jpeg" || mime == "png")
-                    {
-                        string b64Content = imageStr.Substring(pStart + mime.Length + ";base64,".Length);
-                        byte[] imageBytes = Convert.FromBase64String(b64Content);
-                        string fileext = "." + mime;
-                        string guid = Guid.NewGuid().ToString();
-                        string pathUID = guid + fileext;
-
-                        System.IO.File.WriteAllBytes("c:\\temp\\" + pathUID, imageBytes);
-
-                        BasicImage bi = new BasicImage
-                        {
-                            //Initialise as -1 prior to autogeneration of PropertyID image is bound to
-                            PropertyRef = -1,
-                            Position = ++imgCount,
-                            Path = pathUID
-                        };
-
-                        images.Add(bi);
-                    }
-                }
-
-                //Delete the previous images
-
-
-                property.AddressLine1 = addProperty.AddressLine1;
-                property.AddressLine2 = addProperty.AddressLine2;
-                property.City = addProperty.City;
-                property.County = addProperty.County;
-                property.Postcode = addProperty.Postcode;
-                property.Longitude = addProperty.Longitude;
-                property.Latitude = addProperty.Latitude;
-                property.PropertyDescription = addProperty.PropertyDescription;
-                property.PropertyStatus = Property.VerificationStatus.Pending;
-
-                foreach (BasicImage bi in images)
-                {
-                    bi.PropertyRef = property.ID;
-                    Image im = _mapper.Map<BasicImage, Image>(bi);
-                    _context.Image.Add(im);
-                }
-
-                await _context.SaveChangesAsync();
-
-                return Ok();
+                return Unauthorized();
             }
-            return BadRequest();
+            
+            //Generate property
+            Property newproperty = _mapper.Map<AddProperty, Property>(addProperty);
+            newproperty.PropertyStatus = Property.VerificationStatus.Pending;
+            newproperty.AppUserRef = landlord;
+
+            //Validate new property
+            if (!TryValidateModel(newproperty))
+            {
+                return BadRequest();
+            }
+
+            List<BasicImage> images = new List<BasicImage>();
+
+            int imgCount = 0;
+            foreach (string imageStr in addProperty.Images)
+            {
+                BasicImage bi = WriteImage(imageStr, imgCount);
+
+                if (bi != null)
+                {
+                    images.Add(bi);
+                    imgCount++;
+                }
+                else
+                {
+                    CleanImages(images);
+                    return BadRequest();
+                }
+            }
+
+            List<Image> oldImages = _context.Image.Where(i => i.PropertyRef == id).ToList();
+            List<BasicImage> oldBasicImages = _mapper.Map<List<Image>, List<BasicImage>>(oldImages);
+            
+            //From DB
+            foreach (Image i in oldImages)
+            {
+                _context.Image.Remove(i);
+            }
+
+            //From disk
+            CleanImages(oldBasicImages);
+            
+            currentProperty.AddressLine1 = addProperty.AddressLine1;
+            currentProperty.AddressLine2 = addProperty.AddressLine2;
+            currentProperty.City = addProperty.City;
+            currentProperty.County = addProperty.County;
+            currentProperty.Postcode = addProperty.Postcode;
+            currentProperty.Longitude = addProperty.Longitude;
+            currentProperty.Latitude = addProperty.Latitude;
+            currentProperty.PropertyDescription = addProperty.PropertyDescription;
+            currentProperty.PropertyStatus = Property.VerificationStatus.Pending;
+
+            foreach (BasicImage bi in images)
+            {
+                bi.PropertyRef = currentProperty.ID;
+                Image im = _mapper.Map<BasicImage, Image>(bi);
+                _context.Image.Add(im);
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         // POST: api/properties/add
@@ -247,63 +247,41 @@ namespace Housing.WebAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            //Check all attributes are there? Will the binding be successful?
-
+            
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
+            
+            //Generate property
+            Property property = _mapper.Map<AddProperty, Property>(addProperty);
+            property.PropertyStatus = Property.VerificationStatus.Pending;
+            property.AppUserRef = landlord;
+
+            //Validate property
+            if (!TryValidateModel(property))
+            {
+                return BadRequest();
+            }
 
             List<BasicImage> images = new List<BasicImage>();
 
             int imgCount = 0;
             foreach (string imageStr in addProperty.Images)
             {
-                //Only allowing these types of files to be uploaded
-                //image/jpeg
-                //image/png
+                BasicImage bi = WriteImage(imageStr, imgCount);
 
-                if(imageStr.IndexOf("data:image/") != 0)
+                if(bi != null)
                 {
-                    return BadRequest();
-                }
-
-                int pStart = imageStr.IndexOf("data:image/") + "data:image/".Length;
-                int pEnd = imageStr.IndexOf(";");
-                string mime = imageStr.Substring(pStart, pEnd - pStart);
-
-                if (mime == "jpeg" || mime == "png")
-                {
-                    string b64Content = imageStr.Substring(pStart + mime.Length + ";base64,".Length);
-                    byte[] imageBytes = Convert.FromBase64String(b64Content);
-                    string fileext = "." + mime;
-                    string guid = Guid.NewGuid().ToString();
-                    string pathUID = guid + fileext;
-
-                    System.IO.File.WriteAllBytes("c:\\temp\\" + pathUID, imageBytes);
-
-                    BasicImage bi = new BasicImage
-                    {
-                        //Initialise as -1 prior to autogeneration of PropertyID image is bound to
-                        PropertyRef = -1,
-                        Position = ++imgCount,
-                        Path = pathUID
-                    };
-                    
                     images.Add(bi);
+                    imgCount++;
+                } else
+                {
+                    CleanImages(images);
+                    return BadRequest();
                 }
             }
 
-            //For each image string add it to the file system
-            //For each image string create a basic image from it
-            //Bind to add property first, then deduce ID of property
-            //AddProperty is DTO, bind, cast then add
-
-            Property property = _mapper.Map<AddProperty, Property>(addProperty);
-            property.PropertyStatus = Property.VerificationStatus.Pending;
-            property.AppUserRef = landlord;
-
+            //All Images are valid and added
             _context.Property.Add(property);
-
             foreach (BasicImage bi in images)
             {
                 bi.PropertyRef = property.ID;
@@ -312,8 +290,59 @@ namespace Housing.WebAPI.Controllers
             }
 
             await _context.SaveChangesAsync();
+            return Ok();
+        }
 
-            return Ok(); //CreatedAtAction("GetProperty", new { id = @property.ID }, @property);
+        private static BasicImage WriteImage(string imageStr, int imgCount)
+        {
+            //Block injection attempt
+            if (imageStr.IndexOf("data:image/") != 0)
+            {
+                return null;
+            }
+
+            int pStart = imageStr.IndexOf("data:image/") + "data:image/".Length;
+            int pEnd = imageStr.IndexOf(";");
+            string mime = imageStr.Substring(pStart, pEnd - pStart);
+
+            //Only allowing these types of files to be uploaded
+            //otherwise completely reject
+            //image/jpeg
+            //image/png
+
+            if (mime == "jpeg" || mime == "png")
+            {
+                string b64Content = imageStr.Substring(pStart + mime.Length + ";base64,".Length);
+                byte[] imageBytes = Convert.FromBase64String(b64Content);
+                string fileext = "." + mime;
+                string guid = Guid.NewGuid().ToString();
+                string pathUID = guid + fileext;
+
+                System.IO.File.WriteAllBytes("c:\\temp\\" + pathUID, imageBytes);
+
+                BasicImage bi = new BasicImage
+                {
+                    //Initialise as -1 prior to autogeneration of PropertyID image is bound to
+                    PropertyRef = -1,
+                    Position = ++imgCount,
+                    Path = pathUID
+                };
+
+                return bi;
+            } else
+            {
+                return null;
+            }
+  
+        }
+
+        private static void CleanImages(List<BasicImage> images)
+        {
+            foreach (BasicImage bi in images)
+            {
+                string filePath = "c:\\temp\\" + bi.Path;
+                System.IO.File.Delete(filePath);
+            }
         }
 
         // DELETE: api/properties/propertyid
@@ -327,22 +356,22 @@ namespace Housing.WebAPI.Controllers
 
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
-            var @property = await _context.Property.FindAsync(id);
+            var property = await _context.Property.FindAsync(id);
 
-            if (@property == null)
+            if (property == null)
             {
                 return NotFound();
             }
 
             if (landlord == property.AppUserRef)
             {
-                _context.Property.Remove(@property);
+                _context.Property.Remove(property);
                 await _context.SaveChangesAsync();
 
-                return Ok(@property);
+                return Ok();
             }
 
-            return BadRequest();
+            return Unauthorized();
         }
 
         private bool PropertyExists(int id)

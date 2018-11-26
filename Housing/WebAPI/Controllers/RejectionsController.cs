@@ -37,20 +37,20 @@ namespace Housing.WebAPI.Controllers
 
         // GET: api/Rejections/pid/5
         [HttpGet("pid/{id}")]
-        public IEnumerable<Rejection> GetRejection([FromRoute] int id)
+        public IActionResult GetRejection([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
-                return null;
+                return BadRequest();
             }
             
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
-            var @property = _context.Property.Where(p => p.ID == id).FirstOrDefault();
+            var property = _context.Property.Where(p => p.ID == id).FirstOrDefault();
 
-            if (@property == null)
+            if (property == null)
             {
-                return null;
+                return NotFound();
             }
 
             List<Rejection> rejection = null;
@@ -62,14 +62,12 @@ namespace Housing.WebAPI.Controllers
                 Where(p => p.ID == id).
                 OrderByDescending(p => p.Timestamp).
                 ToList();
+            } else
+            {
+                return Unauthorized();
             }
             
-            if (rejection == null)
-            {
-                return null;
-            }
-
-            return rejection;
+            return Ok(rejection);
         }
 
         // POST: api/rejections/pid/{id}
@@ -86,9 +84,9 @@ namespace Housing.WebAPI.Controllers
             //Check all attributes are there? Will the binding be successful?
 
             var userCp = HttpContext.User;
-            var @property = await _context.Property.FindAsync(id);
+            var property = await _context.Property.FindAsync(id);
 
-            if (@property == null)
+            if (property == null)
             {
                 return NotFound();
             }
@@ -96,6 +94,12 @@ namespace Housing.WebAPI.Controllers
             if (TokenVerifier.CheckOfficer(userCp))
             {
                 Rejection rejection = _mapper.Map<BasicRejection, Rejection>(addRejection);
+
+                if(!TryValidateModel(rejection))
+                {
+                    return BadRequest();
+                }
+
                 _context.Rejection.Add(rejection);
 
                 property.PropertyStatus = Property.VerificationStatus.Rejected;
@@ -104,7 +108,7 @@ namespace Housing.WebAPI.Controllers
                 await _context.SaveChangesAsync();
                 return Ok();
             }
-            return BadRequest();
+            return Unauthorized();
         }
 
         //// PUT: api/Rejections/5

@@ -12,8 +12,10 @@ namespace Housing.WebAPI.Models
         [Key]
         public int ID { get; set; }
         //At what index does this image come in the view?
+        [Required]
         public int Position { get; set; }
         //Location of image stored on server
+        [Required, StringLength(45)]
         public string Path { get; set; }
 
         [ForeignKey("Property")]

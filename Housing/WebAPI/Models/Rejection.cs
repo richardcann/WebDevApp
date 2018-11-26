@@ -11,6 +11,7 @@ namespace Housing.WebAPI.Models
     {
         [Key]
         public int ID { get; set; }
+        [Required, StringLength(200)]
         public string Description { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime Timestamp { get; set; }

@@ -15,6 +15,8 @@ using AutoMapper;
 using Housing.WebAPI.Models;
 using Housing.WebAPI.Models.InternalDTO;
 using Housing.WebAPI.Utils;
+using System;
+using Microsoft.AspNetCore.Http;
 
 namespace Housing
 {
@@ -36,8 +38,6 @@ namespace Housing
 
             //// configure jwt authentication
             var appSettings = appSettingsSection.Get<AppSettings>();
-            //var connection = @"Server=wevdevhousing3.database.windows.net;Database=Housing;Trusted_Connection=False;User ID=webdevadmin;Password=rezzaIsTheBabe69;Encrypt=True;ConnectRetryCount=0";
-            //services.AddDbContext<HousingContext>(options => options.UseSqlServer(connection));
 
             services.AddDbContext<HousingContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("HousingContext")));
@@ -62,6 +62,21 @@ namespace Housing
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddHsts(options =>
+            {
+                options.Preload = true;
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(60);
+            });
+
+            services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                options.HttpsPort = 5001;
+            });
+
+
             services.AddCors();
             //services.AddDbContext<DataContext>(x => x.UseInMemoryDatabase("TestDb"));
 

@@ -21,14 +21,22 @@ namespace Housing.WebAPI.Models
         
         [Key]
         public int ID { get; set; }
+        [Required, StringLength(70)]
         public string AddressLine1 { get; set; }
         public string AddressLine2 { get; set; }
+        [Required, StringLength(30)]
         public string City { get; set; }
+        [Required, StringLength(30)]
         public string County { get; set; }
+        [Required, StringLength(10)]
         public string Postcode { get; set; }
+        [Required, StringLength(1000)]
         public string PropertyDescription { get; set; }
+        [Required]
         public double Latitude { get; set; }
+        [Required]
         public double Longitude { get; set; }
+        [Required, EnumDataType(typeof(VerificationStatus))]
         public VerificationStatus PropertyStatus { get; set; }
         //When the property was added, enables sort by reverse of when properties added
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

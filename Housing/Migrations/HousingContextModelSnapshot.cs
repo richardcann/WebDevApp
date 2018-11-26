@@ -22,21 +22,32 @@ namespace Housing.Migrations
             modelBuilder.Entity("Housing.WebAPI.Models.AppUser", b =>
                 {
                     b.Property<string>("Username")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
 
-                    b.Property<string>("Email");
+                    b.Property<string>("Email")
+                        .IsRequired();
 
-                    b.Property<string>("FirstName");
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(30);
 
-                    b.Property<string>("LastName");
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(30);
 
-                    b.Property<byte[]>("PassHash");
+                    b.Property<byte[]>("PassHash")
+                        .IsRequired();
 
-                    b.Property<byte[]>("PassSalt");
+                    b.Property<byte[]>("PassSalt")
+                        .IsRequired();
 
                     b.Property<int>("Role");
 
                     b.HasKey("Username");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("AppUser");
 
@@ -129,7 +140,9 @@ namespace Housing.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Path");
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(45);
 
                     b.Property<int>("Position");
 
@@ -185,23 +198,33 @@ namespace Housing.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("AddressLine1");
+                    b.Property<string>("AddressLine1")
+                        .IsRequired()
+                        .HasMaxLength(70);
 
                     b.Property<string>("AddressLine2");
 
                     b.Property<string>("AppUserRef");
 
-                    b.Property<string>("City");
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(30);
 
-                    b.Property<string>("County");
+                    b.Property<string>("County")
+                        .IsRequired()
+                        .HasMaxLength(30);
 
                     b.Property<double>("Latitude");
 
                     b.Property<double>("Longitude");
 
-                    b.Property<string>("Postcode");
+                    b.Property<string>("Postcode")
+                        .IsRequired()
+                        .HasMaxLength(10);
 
-                    b.Property<string>("PropertyDescription");
+                    b.Property<string>("PropertyDescription")
+                        .IsRequired()
+                        .HasMaxLength(1000);
 
                     b.Property<int>("PropertyStatus");
 
@@ -211,6 +234,9 @@ namespace Housing.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("AppUserRef");
+
+                    b.HasIndex("AddressLine1", "Postcode")
+                        .IsUnique();
 
                     b.ToTable("Property");
 
@@ -283,7 +309,9 @@ namespace Housing.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Description");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200);
 
                     b.Property<int>("PropertyRef");
 

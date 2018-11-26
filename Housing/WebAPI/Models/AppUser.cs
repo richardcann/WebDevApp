@@ -1,4 +1,5 @@
 ﻿using Housing.WebAPI.Models.ClientServerDTO;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,13 +32,20 @@ namespace Housing.WebAPI.Models
             Properties = new HashSet<Property>();
         }
 
-        [Key]
+        [Key, StringLength(30, MinimumLength = 3)]
         public string Username { get; set; }
+        [Required, StringLength(30)]
         public string FirstName { get; set; }
+        [Required, StringLength(30)]
         public string LastName { get; set; }
+        [Required, EnumDataType(typeof(UserRole))]
         public UserRole Role { get; set; }
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
+        [Required]
         public byte[] PassHash { get; set; }
+        [Required]
         public byte[] PassSalt { get; set; }
             
         public virtual ICollection<Property> Properties { get; set; }

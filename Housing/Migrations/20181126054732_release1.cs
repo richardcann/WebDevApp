@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Housing.Migrations
 {
-    public partial class Release1 : Migration
+    public partial class release1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -12,13 +12,13 @@ namespace Housing.Migrations
                 name: "AppUser",
                 columns: table => new
                 {
-                    Username = table.Column<string>(nullable: false),
-                    FirstName = table.Column<string>(nullable: true),
-                    LastName = table.Column<string>(nullable: true),
+                    Username = table.Column<string>(maxLength: 30, nullable: false),
+                    FirstName = table.Column<string>(maxLength: 30, nullable: false),
+                    LastName = table.Column<string>(maxLength: 30, nullable: false),
                     Role = table.Column<int>(nullable: false),
-                    Email = table.Column<string>(nullable: true),
-                    PassHash = table.Column<byte[]>(nullable: true),
-                    PassSalt = table.Column<byte[]>(nullable: true)
+                    Email = table.Column<string>(nullable: false),
+                    PassHash = table.Column<byte[]>(nullable: false),
+                    PassSalt = table.Column<byte[]>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -31,12 +31,12 @@ namespace Housing.Migrations
                 {
                     ID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AddressLine1 = table.Column<string>(nullable: true),
+                    AddressLine1 = table.Column<string>(maxLength: 70, nullable: false),
                     AddressLine2 = table.Column<string>(nullable: true),
-                    City = table.Column<string>(nullable: true),
-                    County = table.Column<string>(nullable: true),
-                    Postcode = table.Column<string>(nullable: true),
-                    PropertyDescription = table.Column<string>(nullable: true),
+                    City = table.Column<string>(maxLength: 30, nullable: false),
+                    County = table.Column<string>(maxLength: 30, nullable: false),
+                    Postcode = table.Column<string>(maxLength: 10, nullable: false),
+                    PropertyDescription = table.Column<string>(maxLength: 1000, nullable: false),
                     Latitude = table.Column<double>(nullable: false),
                     Longitude = table.Column<double>(nullable: false),
                     PropertyStatus = table.Column<int>(nullable: false),
@@ -61,7 +61,7 @@ namespace Housing.Migrations
                     ID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Position = table.Column<int>(nullable: false),
-                    Path = table.Column<string>(nullable: true),
+                    Path = table.Column<string>(maxLength: 45, nullable: false),
                     PropertyRef = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -81,7 +81,7 @@ namespace Housing.Migrations
                 {
                     ID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Description = table.Column<string>(nullable: true),
+                    Description = table.Column<string>(maxLength: 200, nullable: false),
                     Timestamp = table.Column<DateTime>(nullable: false),
                     PropertyRef = table.Column<int>(nullable: false)
                 },
@@ -140,6 +140,12 @@ namespace Housing.Migrations
                 values: new object[] { 1, "Please add at least one photo", 100, new DateTime(2018, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AppUser_Email",
+                table: "AppUser",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Image_PropertyRef",
                 table: "Image",
                 column: "PropertyRef");
@@ -148,6 +154,12 @@ namespace Housing.Migrations
                 name: "IX_Property_AppUserRef",
                 table: "Property",
                 column: "AppUserRef");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Property_AddressLine1_Postcode",
+                table: "Property",
+                columns: new[] { "AddressLine1", "Postcode" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rejection_PropertyRef",

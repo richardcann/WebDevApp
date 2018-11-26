@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Housing.WebAPI.Models;
@@ -15,15 +10,12 @@ using Housing.WebAPI.Models.InternalDTO;
 using Housing.WebAPI.Models.ClientServerDTO;
 using Housing.WebAPI.Utils;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Housing.WebAPI.Controllers
 {
     [Route("api/users")]
     [ApiController]
-    public class AppUsersController : ControllerBase
+    public class AppUsersController : Controller
     {
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
@@ -38,18 +30,7 @@ namespace Housing.WebAPI.Controllers
             _appSettings = appSettings.Value;
             _context = context;
         }
-
-        // GET: api/users
-        //[HttpGet]
-        //public IEnumerable<AppUser> GetAppUser()
-        //{
-        //    var properties = _context.AppUser
-        //        .Where(p => p.Role == UserRole.Landlord)
-        //        .Include(p => p.Properties)
-        //        .ToList();
-        //    return properties;
-        //}
-
+       
         // POST: api/users/register
         // Upon registration, return token & login by default
         [AllowAnonymous]
@@ -62,33 +43,47 @@ namespace Housing.WebAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            byte[] salt = GenerateSalt();
-            byte[] hash = GenerateHash(RegisterUser.Password, salt);
+            if(RegisterUser.Username == null)
+            {
+                return new StatusCodeResult(StatusCodes.Status409Conflict);
+            }
+
+            byte[] salt = Crypto.GenerateSalt();
+            byte[] hash = Crypto.GenerateHash(RegisterUser.Password, salt);
 
             AppUser AppUser = new AppUser(RegisterUser, hash, salt);
-            _context.AppUser.Add(AppUser);
 
-            try
+            TryValidateModel(AppUser);
+
+            if(ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (AppUserExists(AppUser.Username))
+                _context.AppUser.Add(AppUser);
+
+                try
                 {
-                    return new StatusCodeResult(StatusCodes.Status409Conflict);
+                    await _context.SaveChangesAsync();
                 }
-                else
+                catch (DbUpdateException)
                 {
-                    throw;
+                    if (AppUserExists(AppUser.Username))
+                    {
+                        return new StatusCodeResult(StatusCodes.Status409Conflict);
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
+
+                var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
+                loginSuccess.Token = Crypto.GenerateJSONWebToken(AppUser, _appSettings);
+                return Ok(loginSuccess);
             }
 
-            var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
-            loginSuccess.Token = GenerateJSONWebToken(AppUser);
-            return Ok(loginSuccess);
+            return BadRequest();
+            
         }
-
+        
         // POST: api/users/authenticate
         [AllowAnonymous]
         [HttpPost]
@@ -105,41 +100,41 @@ namespace Housing.WebAPI.Controllers
 
             if (appUser == null)
             {
-                return Ok();
+                return NotFound();
             }
 
-            if (CheckHash(password, appUser.PassSalt, appUser.PassHash))
+            if (Crypto.CheckHash(password, appUser.PassSalt, appUser.PassHash))
             {
                 var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
-                loginSuccess.Token = GenerateJSONWebToken(appUser);
+                loginSuccess.Token = Crypto.GenerateJSONWebToken(appUser, _appSettings);
                 return Ok(loginSuccess);
             }
 
-            return Ok();
+            return NotFound();
         }
 
         // GET: api/users/username
         // Users can only retrieve their creds with this api call
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAppUser([FromRoute] string id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        ////////[Authorize]
+        ////////[HttpGet("{id}")]
+        ////////public async Task<IActionResult> GetAppUser([FromRoute] string id)
+        ////////{
+        ////////    if (!ModelState.IsValid)
+        ////////    {
+        ////////        return BadRequest(ModelState);
+        ////////    }
             
-            var userCp = HttpContext.User;
-            var appUser = await _context.AppUser.FindAsync(id);
+        ////////    var userCp = HttpContext.User;
+        ////////    var appUser = await _context.AppUser.FindAsync(id);
 
-            if (appUser == null || !TokenVerifier.CheckUser(userCp, id))
-            {
-                return NotFound();
-            }
+        ////////    if (appUser == null || !TokenVerifier.CheckUser(userCp, id))
+        ////////    {
+        ////////        return NotFound();
+        ////////    }
 
-            var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
-            return Ok(loginSuccess);
-        }
+        ////////    var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
+        ////////    return Ok(loginSuccess);
+        ////////}
 
         //// PUT: api/users/5
         //[HttpPut("{id}")]
@@ -205,53 +200,5 @@ namespace Housing.WebAPI.Controllers
             return _context.AppUser.Any(e => e.Username == id);
         }
         
-        private static bool CheckHash(string password, byte[] salt, byte[] hash)
-        {
-            byte[] byteHashed = GenerateHash(password, salt);
-            return byteHashed.SequenceEqual(hash);
-        }
-
-        private static byte[] GenerateSalt()
-        {
-            byte[] salt = new byte[128 / 8];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(salt);
-            }
-            return salt;
-        }
-
-        public static byte[] GenerateHash(string password, byte[] salt)
-        {
-            string hash = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-               password: password,
-               salt: salt,
-               prf: KeyDerivationPrf.HMACSHA1,
-               iterationCount: 10000,
-               numBytesRequested: 256 / 8));
-
-            return Encoding.ASCII.GetBytes(hash);
-        }
-
-        private string GenerateJSONWebToken(AppUser appUser)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.Key));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[] {
-                new Claim("Username", appUser.Username),
-                new Claim("Role", appUser.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var token = new JwtSecurityToken(_appSettings.Issuer,
-                _appSettings.Issuer,
-                claims,
-                expires: DateTime.Now.AddMinutes(120),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
     }
 }
