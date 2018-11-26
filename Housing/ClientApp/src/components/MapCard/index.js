@@ -36,13 +36,13 @@ const style = {
 
 class PropMap extends React.Component {
   state = {
-    lat: 51.505,
-    lng: -0.09
+    lat: this.props.position[0],
+    lng: this.props.position[1]
   };
   componentDidMount() {
     // create map
     this.map = L.map(this.props.id, {
-      center: [51.505, -0.09],
+      center: this.props.position,
       zoom: 16,
       layers: [
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {

@@ -58,10 +58,27 @@ function LandlordHome(props) {
   };
 
   const handleNewProperty = values => {
-    currentProperties.push({ ...values, status: 'pending' });
-    console.log(currentProperties);
-    setProperties(currentProperties);
-    propertyAdded();
+    const requestOptions = {
+      method: 'GET'
+    };
+
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${
+        values.address
+      }`,
+      requestOptions
+    ).then(response => {
+      response.json().then(data => {
+        const lat = data[0].lat;
+        const lon = data[0].lon;
+        const position = [lat, lon];
+        values = { ...values, position };
+        currentProperties.push({ ...values, status: 'pending' });
+        console.log(currentProperties);
+        setProperties(currentProperties);
+        propertyAdded();
+      });
+    });
   };
 
   const style = {
