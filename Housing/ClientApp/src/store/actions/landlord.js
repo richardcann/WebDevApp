@@ -54,6 +54,10 @@ export function setProperties(properties) {
   return { type: 'SET_PROPERTIES', properties };
 }
 
+export function cancelModal() {
+  return { type: 'CANCEL_MODAL' };
+}
+
 export function getProperties() {
   return dispatch => {
     userHelper.getLandlordProps().then(

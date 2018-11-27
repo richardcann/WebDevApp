@@ -18,6 +18,8 @@ export function officer(state, action) {
         ...state,
         disapprovedProperty: null
       };
+    case 'LOGOUT':
+      return {};
     default:
       return state;
   }

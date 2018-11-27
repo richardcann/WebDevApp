@@ -8,6 +8,8 @@ export function student(state, action) {
         ...state,
         properties: action.properties
       };
+    case 'LOGOUT':
+      return {};
     default:
       return state;
   }

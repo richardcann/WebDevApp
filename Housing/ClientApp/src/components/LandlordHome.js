@@ -20,14 +20,15 @@ function LandlordHome(props) {
     addNewProperty,
     propertyAdded,
     editProperty,
-    submitProperty,
+    submitEditedProperty,
     currentProperties,
     setProperties,
     showDisapproved,
     showCurrentDisapproved,
     hideDisapproved,
     submitNewProperty,
-    getProperties
+    getProperties,
+    cancelModal
   } = props;
 
   if (typeof currentProperties === 'undefined') {
@@ -39,17 +40,22 @@ function LandlordHome(props) {
   };
 
   const onCancel = () => {
-    propertyAdded();
+    cancelModal();
   };
 
   const submitEdit = values => {
+    values.images.map(url => {
+      currentProperties[editingProperty].images.push(url);
+    });
+    const images = currentProperties[editingProperty].images;
     currentProperties[editingProperty] = {
       ...currentProperties[editingProperty],
       ...values,
+      images,
       propertyStatus: 0
     };
     setProperties(currentProperties);
-    submitProperty(currentProperties[editingProperty]);
+    submitEditedProperty(currentProperties[editingProperty]);
   };
 
   const handleNewProperty = values => {
@@ -57,10 +63,12 @@ function LandlordHome(props) {
       method: 'GET'
     };
 
+    const addressQuery = `${values.addressLine1} ${
+      values.postcode ? values.postcode : values.city ? values.city : ''
+    }`;
+
     fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${
-        values.address
-      }`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${addressQuery}`,
       requestOptions
     ).then(response => {
       response.json().then(data => {
@@ -94,17 +102,23 @@ function LandlordHome(props) {
       >
         Add Property
       </Button>
-      <PropertyForm
-        visible={addingProperty}
-        onCancel={onCancel}
-        onSubmit={handleNewProperty}
-      />
-      <PropertyForm
-        visible={editingProperty !== null && editingProperty >= 0}
-        property={currentProperties ? currentProperties[editingProperty] : null}
-        onCancel={submitProperty}
-        onSubmit={submitEdit}
-      />
+      {addingProperty ? (
+        <PropertyForm
+          visible={addingProperty}
+          onCancel={onCancel}
+          onSubmit={handleNewProperty}
+        />
+      ) : null}
+      {editingProperty !== null && editingProperty >= 0 ? (
+        <PropertyForm
+          visible={editingProperty !== null && editingProperty >= 0}
+          property={
+            currentProperties ? currentProperties[editingProperty] : null
+          }
+          onCancel={cancelModal}
+          onSubmit={submitEdit}
+        />
+      ) : null}
       {typeof showDisapproved !== 'undefined' && showDisapproved !== null ? (
         <MessageModal
           visible={showDisapproved !== null}
@@ -193,6 +207,9 @@ const mapDispatchToProps = dispatch => {
     },
     hideDisapproved: () => {
       dispatch(landlordActions.hideDisapproved());
+    },
+    cancelModal: () => {
+      dispatch(landlordActions.cancelModal());
     }
   };
 };

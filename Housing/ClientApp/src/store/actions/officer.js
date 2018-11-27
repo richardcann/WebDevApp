@@ -32,7 +32,7 @@ export function approveProperty(index) {
     userHelper.approveProperty(index).then(
       () => {
         //history.push('/login');
-        //dispatch({ type: 'SUBMIT_APPROVAL' });
+        dispatch(closeModal());
         //dispatch(alertActions.success('Registration successful'));
       },
       error => {

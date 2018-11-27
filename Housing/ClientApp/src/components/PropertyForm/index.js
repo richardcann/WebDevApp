@@ -51,6 +51,9 @@ class Demo extends React.Component {
     };
     const currentTitle = property ? property.addressLine1 : '';
     const addressLine2 = property ? property.addressLine2 : '';
+    const city = property ? property.city : '';
+    const postcode = property ? property.postcode : '';
+    const county = property ? property.county : '';
     const currentDescription = property ? property.propertyDescription : '';
     return (
       <Modal
@@ -87,10 +90,25 @@ class Demo extends React.Component {
             })(<Input />)}
           </FormItem>
           <FormItem {...formItemLayout} label="City">
-            <Input />
+            {getFieldDecorator('city', {
+              required: true,
+              message: 'Please input city',
+              initialValue: city
+            })(<Input />)}
+          </FormItem>
+          <FormItem {...formItemLayout} label="County">
+            {getFieldDecorator('county', {
+              required: true,
+              message: 'Please input county',
+              initialValue: county
+            })(<Input />)}
           </FormItem>
           <FormItem {...formItemLayout} label="Postcode">
-            <Input />
+            {getFieldDecorator('postcode', {
+              required: true,
+              message: 'Please input postcode',
+              initialValue: postcode
+            })(<Input />)}
           </FormItem>
 
           <FormItem {...formItemLayout} label="Description">
