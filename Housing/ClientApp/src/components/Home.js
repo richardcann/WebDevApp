@@ -5,7 +5,7 @@ import LandlordHome from './LandlordHome';
 import OfficerHome from './OfficerHome';
 
 function Home(props) {
-  const { user, cookies } = props;
+  const { user } = props;
   return (
     <div>
       {user && user.role === 'student' ? (

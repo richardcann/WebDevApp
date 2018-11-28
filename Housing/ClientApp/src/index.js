@@ -26,13 +26,11 @@ const rootElement = document.getElementById('root');
 configureFakeBackend();
 
 ReactDOM.render(
-  <CookiesProvider>
-    <Provider store={store}>
-      <ConnectedRouter history={history}>
-        <App />
-      </ConnectedRouter>
-    </Provider>
-  </CookiesProvider>,
+  <Provider store={store}>
+    <ConnectedRouter history={history}>
+      <App />
+    </ConnectedRouter>
+  </Provider>,
   rootElement
 );
 
