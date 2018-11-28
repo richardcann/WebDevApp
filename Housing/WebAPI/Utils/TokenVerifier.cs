@@ -18,7 +18,21 @@ namespace Housing.WebAPI.Utils
             {
                 return false;
             }
+
         }
+        
+        public static string GetUsername(ClaimsPrincipal cp)
+        {
+            if (cp.HasClaim(c => c.Type == "Username"))
+            {
+                return cp.Claims.FirstOrDefault(c => c.Type == "Username").Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public static bool CheckStudent(ClaimsPrincipal cp)
         {
             return CheckRole(cp, UserRole.Student);
