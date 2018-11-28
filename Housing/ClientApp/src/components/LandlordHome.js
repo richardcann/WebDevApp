@@ -20,41 +20,42 @@ function LandlordHome(props) {
     addNewProperty,
     propertyAdded,
     editProperty,
-    submitProperty,
+    submitEditedProperty,
     currentProperties,
     setProperties,
     showDisapproved,
     showCurrentDisapproved,
-    hideDisapproved
+    hideDisapproved,
+    submitNewProperty,
+    getProperties,
+    cancelModal
   } = props;
 
   if (typeof currentProperties === 'undefined') {
-    setProperties([exampleProperty, disapprovedProperty, pendingProperty]);
+    getProperties();
   }
-  /*const requestOptions = {
-    method: 'GET'
-  };
-
-  fetch('https://nominatim.openstreetmap.org/search?format=json&q=6+University+Road+Southampton', requestOptions).then((response) => {
-    response.json().then((data) => console.log(data));
-  });*/
 
   const handleClick = property => {
     editProperty(property);
   };
 
   const onCancel = () => {
-    propertyAdded();
+    cancelModal();
   };
 
   const submitEdit = values => {
+    values.images.map(url => {
+      currentProperties[editingProperty].images.push(url);
+    });
+    const images = currentProperties[editingProperty].images;
     currentProperties[editingProperty] = {
       ...currentProperties[editingProperty],
       ...values,
-      status: 'pending'
+      images,
+      propertyStatus: 1
     };
     setProperties(currentProperties);
-    submitProperty();
+    submitEditedProperty(currentProperties[editingProperty]);
   };
 
   const handleNewProperty = values => {
@@ -62,21 +63,23 @@ function LandlordHome(props) {
       method: 'GET'
     };
 
+    const addressQuery = `${values.addressLine1} ${
+      values.postcode ? values.postcode : values.city ? values.city : ''
+    }`;
+
     fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${
-        values.address
-      }`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${addressQuery}`,
       requestOptions
     ).then(response => {
       response.json().then(data => {
         const lat = data[0].lat;
         const lon = data[0].lon;
-        const position = [lat, lon];
-        values = { ...values, position };
-        currentProperties.push({ ...values, status: 'pending' });
+        values = { ...values, latitude: lat, longitude: lon };
+        const newProperty = { ...values, propertyStatus: 1 };
+        currentProperties.push(newProperty);
         console.log(currentProperties);
         setProperties(currentProperties);
-        propertyAdded();
+        submitNewProperty(newProperty);
       });
     });
   };
@@ -99,34 +102,40 @@ function LandlordHome(props) {
       >
         Add Property
       </Button>
-      <PropertyForm
-        visible={addingProperty}
-        onCancel={onCancel}
-        onSubmit={handleNewProperty}
-      />
-      <PropertyForm
-        visible={editingProperty !== null && editingProperty >= 0}
-        property={currentProperties ? currentProperties[editingProperty] : null}
-        onCancel={submitProperty}
-        onSubmit={submitEdit}
-      />
+      {addingProperty ? (
+        <PropertyForm
+          visible={addingProperty}
+          onCancel={onCancel}
+          onSubmit={handleNewProperty}
+        />
+      ) : null}
+      {editingProperty !== null && editingProperty >= 0 ? (
+        <PropertyForm
+          visible={editingProperty !== null && editingProperty >= 0}
+          property={
+            currentProperties ? currentProperties[editingProperty] : null
+          }
+          onCancel={cancelModal}
+          onSubmit={submitEdit}
+        />
+      ) : null}
       {typeof showDisapproved !== 'undefined' && showDisapproved !== null ? (
         <MessageModal
           visible={showDisapproved !== null}
           onCancel={hideDisapproved}
           noEdit={true}
-          title={currentProperties[showDisapproved].message.author}
-          message={currentProperties[showDisapproved].message.description}
+          title={'Rejection Reason: '}
+          message={currentProperties[showDisapproved].rejections}
         />
       ) : null}
       {currentProperties
         ? currentProperties.map((current, index) => {
             const color =
-              current.status === 'approved' || current.status === 'disapproved'
-                ? current.status === 'approved'
-                  ? 'green'
-                  : 'red'
-                : 'orange';
+              current.propertyStatus === 1 || current.propertyStatus === 2
+                ? current.propertyStatus === 2
+                  ? 'red'
+                  : 'orange'
+                : 'green';
             return (
               <PropertyCard
                 id={index.toString()}
@@ -139,7 +148,11 @@ function LandlordHome(props) {
                       }}
                       color={color}
                     >
-                      {current.status}
+                      {current.propertyStatus === 1
+                        ? 'pending'
+                        : current.propertyStatus === 2
+                          ? 'rejected'
+                          : 'approved'}
                     </Tag>
                     <a onClick={() => handleClick(index)}>Edit</a>
                   </div>
@@ -177,17 +190,26 @@ const mapDispatchToProps = dispatch => {
     editProperty: property => {
       dispatch(landlordActions.editProperty(property));
     },
-    submitProperty: () => {
-      dispatch(landlordActions.submitProperty());
+    submitEditedProperty: property => {
+      dispatch(landlordActions.submitEditedProperty(property));
+    },
+    submitNewProperty: property => {
+      dispatch(landlordActions.submitNewProperty(property));
     },
     setProperties: properties => {
       dispatch(landlordActions.setProperties(properties));
+    },
+    getProperties: () => {
+      dispatch(landlordActions.getProperties());
     },
     showCurrentDisapproved: index => {
       dispatch(landlordActions.showCurrentDisapproved(index));
     },
     hideDisapproved: () => {
       dispatch(landlordActions.hideDisapproved());
+    },
+    cancelModal: () => {
+      dispatch(landlordActions.cancelModal());
     }
   };
 };

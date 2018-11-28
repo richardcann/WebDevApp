@@ -106,9 +106,9 @@ class Register extends React.Component {
               onChange={this.handleChange}
             >
               <option style={{ display: 'none' }}>Pick Role</option>
-              <option value="student">Student</option>
-              <option value="officer">Uni Officer</option>
-              <option value="landlord">Landlord</option>
+              <option value="2">Student</option>
+              <option value="0">Uni Officer</option>
+              <option value="1">Landlord</option>
             </select>
             {submitted &&
               !user.role && <div className="help-block">Role is required</div>}

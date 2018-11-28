@@ -3,6 +3,13 @@ export const userHelper = {
   logout,
   register,
   getAll,
+  getApprovedProperties,
+  getLandlordProps,
+  submitEdit,
+  submitNew,
+  getOfficerProps,
+  submitRejection,
+  approveProperty,
   getById,
   update,
   delete: _delete
@@ -13,10 +20,87 @@ function authHeader() {
   let user = JSON.parse(localStorage.getItem('user'));
 
   if (user && user.token) {
-    return { Authorization: 'Bearer ' + user.token };
+    return {
+      Authorization: 'Bearer ' + user.token,
+      'Content-Type': 'application/json'
+    };
   } else {
     return {};
   }
+}
+
+function getApprovedProperties() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/approved`, requestOptions).then(handleResponse);
+}
+
+function getLandlordProps() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/myproperties`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function getOfficerProps() {
+  const requestOptions = {
+    method: 'GET',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/pending`, requestOptions).then(handleResponse);
+}
+
+function submitRejection(index, message) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify({ description: message })
+  };
+
+  return fetch(`api/rejections/add/${index}`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function approveProperty(index) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader()
+  };
+
+  return fetch(`api/properties/approve/${index}`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function submitEdit(property) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify(property)
+  };
+
+  return fetch(`api/properties/edit/${property.id}`, requestOptions).then(
+    handleResponse
+  );
+}
+
+function submitNew(property) {
+  const requestOptions = {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify(property)
+  };
+
+  return fetch(`api/properties/add`, requestOptions).then(handleResponse);
 }
 
 function login(username, password) {
@@ -26,7 +110,7 @@ function login(username, password) {
     body: JSON.stringify({ username, password })
   };
 
-  return fetch(`users/authenticate`, requestOptions)
+  return fetch(`api/users/authenticate`, requestOptions)
     .then(handleResponse)
     .then(user => {
       // login successful if there's a jwt token in the response
@@ -69,7 +153,7 @@ function register(user) {
     body: JSON.stringify(user)
   };
 
-  return fetch(`users/register`, requestOptions).then(handleResponse);
+  return fetch(`api/users/register`, requestOptions).then(handleResponse);
 }
 
 function update(user) {

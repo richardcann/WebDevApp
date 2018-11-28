@@ -33,11 +33,19 @@ export function landlord(state, action) {
         ...state,
         showDisapproved: action.index
       };
+    case 'CANCEL_MODAL':
+      return {
+        ...state,
+        addingProperty: false,
+        editingProperty: null
+      };
     case 'HIDE_DISAPPROVED':
       return {
         ...state,
         showDisapproved: null
       };
+    case 'LOGOUT':
+      return {};
     default:
       return state;
   }

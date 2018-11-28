@@ -13,36 +13,36 @@ function OfficerHome(props) {
     setProperties,
     disapprovedProperty,
     disapproveProperty,
-    submitDisapproval
+    getProperties,
+    submitDisapproval,
+    approveCurrentProperty,
+    closeModal
   } = props;
 
   if (typeof currentProperties === 'undefined') {
-    setProperties([pendingProperty, pendingProperty, pendingProperty]);
+    getProperties();
   }
 
   const onCancelModal = () => {
-    submitDisapproval();
+    closeModal();
   };
 
   const submitMessage = message => {
     currentProperties[disapprovedProperty] = {
       ...currentProperties[disapprovedProperty],
-      message: {
-        author: 'Current User',
-        description: message
-      },
-      status: 'disapproved'
+      propertyStatus: 2
     };
     setProperties(currentProperties);
-    submitDisapproval();
+    submitDisapproval(currentProperties[disapprovedProperty].id, message);
   };
 
   const approveProperty = index => {
     currentProperties[index] = {
       ...currentProperties[index],
-      status: 'approved'
+      propertyStatus: 0
     };
     setProperties(currentProperties);
+    approveCurrentProperty(currentProperties[index].id);
   };
 
   return (
@@ -64,12 +64,6 @@ function OfficerHome(props) {
       ) : null}
       {currentProperties
         ? currentProperties.map((current, index) => {
-            const color =
-              current.status === 'approved' || current.status === 'disapproved'
-                ? current.status === 'approved'
-                  ? 'green'
-                  : 'red'
-                : 'orange';
             return (
               <PropertyCard
                 id={index.toString()}
@@ -115,8 +109,17 @@ const mapDispatchToProps = dispatch => {
     disapproveProperty: index => {
       dispatch(officerActions.disapproveProperty(index));
     },
-    submitDisapproval: () => {
-      dispatch(officerActions.submitDisapproval());
+    approveCurrentProperty: index => {
+      dispatch(officerActions.approveProperty(index));
+    },
+    submitDisapproval: (index, description) => {
+      dispatch(officerActions.submitDisapproval(index, description));
+    },
+    getProperties: () => {
+      dispatch(officerActions.getProperties());
+    },
+    closeModal: () => {
+      dispatch(officerActions.closeModal());
     }
   };
 };

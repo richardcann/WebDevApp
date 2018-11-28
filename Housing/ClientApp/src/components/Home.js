@@ -8,9 +8,9 @@ function Home(props) {
   const { user } = props;
   return (
     <div>
-      {user && user.role === 'student' ? (
+      {user && user.role === 2 ? (
         <StudentHome />
-      ) : user.role === 'landlord' ? (
+      ) : user.role === 1 ? (
         <LandlordHome />
       ) : (
         <OfficerHome />

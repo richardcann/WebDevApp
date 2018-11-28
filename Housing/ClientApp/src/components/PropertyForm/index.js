@@ -25,7 +25,12 @@ class Demo extends React.Component {
         console.log('Received values of form: ', values);
       }
       console.log(values);
-      this.props.onSubmit(values);
+      const imagesUrl = values.images
+        ? values.images.map(image => {
+            return image.thumbUrl;
+          })
+        : [];
+      this.props.onSubmit({ ...values, images: imagesUrl });
     });
   };
 
@@ -44,8 +49,12 @@ class Demo extends React.Component {
       labelCol: { span: 10 },
       wrapperCol: { span: 14 }
     };
-    const currentTitle = property ? property.title : '';
-    const currentDescription = property ? property.description : '';
+    const currentTitle = property ? property.addressLine1 : '';
+    const addressLine2 = property ? property.addressLine2 : '';
+    const city = property ? property.city : '';
+    const postcode = property ? property.postcode : '';
+    const county = property ? property.county : '';
+    const currentDescription = property ? property.propertyDescription : '';
     return (
       <Modal
         visible={visible}
@@ -55,7 +64,7 @@ class Demo extends React.Component {
         onOk={this.handleSubmit}
       >
         <Form>
-          <FormItem {...formItemLayout} label="Title">
+          {/*<FormItem {...formItemLayout} label="Title">
             {getFieldDecorator('title', {
               rules: [
                 {
@@ -66,24 +75,44 @@ class Demo extends React.Component {
               ],
               initialValue: currentTitle
             })(<Input />)}
-          </FormItem>
+          </FormItem>*/}
           <FormItem {...formItemLayout} label="Address">
-            {getFieldDecorator('address', {
+            {getFieldDecorator('addressLine1', {
               rules: [
                 { required: true, message: 'Please input property address' }
               ],
               initialValue: currentTitle
             })(<Input />)}
           </FormItem>
+          <FormItem {...formItemLayout} label="Address">
+            {getFieldDecorator('addressLine2', {
+              initialValue: addressLine2
+            })(<Input />)}
+          </FormItem>
           <FormItem {...formItemLayout} label="City">
-            <Input />
+            {getFieldDecorator('city', {
+              required: true,
+              message: 'Please input city',
+              initialValue: city
+            })(<Input />)}
+          </FormItem>
+          <FormItem {...formItemLayout} label="County">
+            {getFieldDecorator('county', {
+              required: true,
+              message: 'Please input county',
+              initialValue: county
+            })(<Input />)}
           </FormItem>
           <FormItem {...formItemLayout} label="Postcode">
-            <Input />
+            {getFieldDecorator('postcode', {
+              required: true,
+              message: 'Please input postcode',
+              initialValue: postcode
+            })(<Input />)}
           </FormItem>
 
           <FormItem {...formItemLayout} label="Description">
-            {getFieldDecorator('description', {
+            {getFieldDecorator('propertyDescription', {
               rules: [
                 {
                   required: true,
@@ -97,7 +126,7 @@ class Demo extends React.Component {
           </FormItem>
 
           <FormItem {...formItemLayout} label="Upload photo" extra="">
-            {getFieldDecorator('upload', {
+            {getFieldDecorator('images', {
               valuePropName: 'fileList',
               getValueFromEvent: this.normFile
             })(
