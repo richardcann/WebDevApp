@@ -35,7 +35,11 @@ class Demo extends React.Component {
         onOk={() => (onSubmit ? onSubmit(message) : onCancel())}
       >
         {message && notEdit ? (
-          <p>{message}</p>
+          <div>
+            {message.map(current => {
+              return <p>{current.description}</p>;
+            })}
+          </div>
         ) : (
           <Form>
             <FormItem {...formItemLayout} label="Reason">

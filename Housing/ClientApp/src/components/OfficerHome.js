@@ -39,7 +39,7 @@ function OfficerHome(props) {
   const approveProperty = index => {
     currentProperties[index] = {
       ...currentProperties[index],
-      propertyStatus: 1
+      propertyStatus: 0
     };
     setProperties(currentProperties);
     approveCurrentProperty(currentProperties[index].id);

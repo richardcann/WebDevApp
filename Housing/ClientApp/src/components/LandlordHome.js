@@ -52,7 +52,7 @@ function LandlordHome(props) {
       ...currentProperties[editingProperty],
       ...values,
       images,
-      propertyStatus: 0
+      propertyStatus: 1
     };
     setProperties(currentProperties);
     submitEditedProperty(currentProperties[editingProperty]);
@@ -75,7 +75,7 @@ function LandlordHome(props) {
         const lat = data[0].lat;
         const lon = data[0].lon;
         values = { ...values, latitude: lat, longitude: lon };
-        const newProperty = { ...values, propertyStatus: 0 };
+        const newProperty = { ...values, propertyStatus: 1 };
         currentProperties.push(newProperty);
         console.log(currentProperties);
         setProperties(currentProperties);
@@ -125,14 +125,14 @@ function LandlordHome(props) {
           onCancel={hideDisapproved}
           noEdit={true}
           title={'Rejection Reason: '}
-          message={currentProperties[showDisapproved].rejections[0].description}
+          message={currentProperties[showDisapproved].rejections}
         />
       ) : null}
       {currentProperties
         ? currentProperties.map((current, index) => {
             const color =
-              current.propertyStatus === 0 || current.propertyStatus === 2
-                ? current.propertyStatus === 1
+              current.propertyStatus === 1 || current.propertyStatus === 2
+                ? current.propertyStatus === 2
                   ? 'red'
                   : 'orange'
                 : 'green';
@@ -148,7 +148,7 @@ function LandlordHome(props) {
                       }}
                       color={color}
                     >
-                      {current.propertyStatus === 0
+                      {current.propertyStatus === 1
                         ? 'pending'
                         : current.propertyStatus === 2
                           ? 'rejected'
