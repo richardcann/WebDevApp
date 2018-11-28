@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\bootstrap.min.css" />
     <None Include="wwwroot\signin.css" />
   </ItemGroup>
 
