@@ -10,6 +10,7 @@ export const userHelper = {
   getOfficerProps,
   submitRejection,
   approveProperty,
+  getUser,
   getById,
   update,
   delete: _delete
@@ -56,6 +57,18 @@ function getOfficerProps() {
   };
 
   return fetch(`api/properties/pending`, requestOptions).then(handleResponse);
+}
+
+function getUser(token) {
+  const requestOptions = {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  return fetch(`api/users/fromtoken`, requestOptions).then(handleResponse);
 }
 
 function submitRejection(index, message) {
@@ -126,6 +139,8 @@ function login(username, password) {
 function logout() {
   // remove user from local storage to log user out
   localStorage.removeItem('user');
+  const cookies = document.cookie.split('Token=')[0];
+  document.cookie = `${cookies} Token=""`;
 }
 
 function getAll() {
@@ -182,6 +197,7 @@ function handleResponse(response) {
     if (!response.ok) {
       if (response.status === 401) {
         // auto logout if 401 response returned from api
+        console.log('cuz of api');
         logout();
         window.location.reload(true);
       }

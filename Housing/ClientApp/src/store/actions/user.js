@@ -33,6 +33,34 @@ export function login(username, password) {
   }
 }
 
+export function setUser(token) {
+  return dispatch => {
+    dispatch(request(token));
+
+    userHelper.getUser(token).then(
+      user => {
+        localStorage.setItem('user', JSON.stringify({ ...user, token }));
+        dispatch(success({ ...user, token }));
+        //history.push('/');
+      },
+      error => {
+        dispatch(failure(error.toString()));
+        //dispatch(alertActions.error(error.toString()));
+      }
+    );
+  };
+
+  function request(user) {
+    return { type: 'LOGIN_REQUEST', user };
+  }
+  function success(user) {
+    return { type: 'LOGIN_SUCCESS', user };
+  }
+  function failure(error) {
+    return { type: 'LOGIN_FAILURE', error };
+  }
+}
+
 export function logout() {
   userHelper.logout();
   return { type: 'LOGOUT' };

@@ -10,12 +10,17 @@ import Login from './components/Login';
 import Register from './components/Register';
 import MapCard from './components/MapCard';
 import OfficerHome from './components/OfficerHome';
-import { PrivateRoute } from './components/PrivateRoute';
+import PrivateRoute from './components/PrivateRoute';
 
 export default () => (
   <ErrorBoundary>
     <Layout>
       <PrivateRoute exact path="/" component={Home} />
+      <Route
+        path="/loginpage"
+        component={() => (window.location = 'https://localhost:5001/loginpage')}
+      />
+      <Route path="/home" component={Home} />
       <Route path="/counter" component={Counter} />
       <Route path="/fetchdata/:startDateIndex?" component={FetchData} />
       <Route path="/login" component={Login} />
