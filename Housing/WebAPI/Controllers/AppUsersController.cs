@@ -111,11 +111,11 @@ namespace Housing.WebAPI.Controllers
             return NotFound();
         }
 
-        // GET: api/users/username
+        // GET: api/users/fromtoken
         // Users can only retrieve their creds with this api call
         [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAppUser([FromRoute] string id)
+        [HttpGet("fromtoken")]
+        public async Task<IActionResult> GetAppUser()
         {
             if (!ModelState.IsValid)
             {
@@ -123,9 +123,8 @@ namespace Housing.WebAPI.Controllers
             }
 
             var usercp = HttpContext.User;
-            var appuser = await _context.AppUser.FindAsync(id);
-
-            if (appuser == null || !TokenVerifier.CheckUser(usercp, id))
+            var appuser = await _context.AppUser.FindAsync(TokenVerifier.GetUsername(usercp));
+            if (appuser == null)
             {
                 return NotFound();
             }

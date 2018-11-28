@@ -113,7 +113,7 @@ namespace Housing.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("approve/{id}")]
-        public async Task<IActionResult> ApproveProperty([FromRoute] int id, [FromBody] AddProperty addProperty)
+        public async Task<IActionResult> ApproveProperty([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
