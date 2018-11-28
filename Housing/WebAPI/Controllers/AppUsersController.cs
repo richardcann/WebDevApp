@@ -31,58 +31,57 @@ namespace Housing.WebAPI.Controllers
             _context = context;
         }
        
-        // POST: api/users/register
-        // Upon registration, return token & login by default
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("register")]
-        public async Task<IActionResult> PostAppUser([FromBody] RegisterUser RegisterUser)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        //// POST: api/users/register
+        //// Upon registration, return token & login by default
+        //[AllowAnonymous]
+        //[HttpPost]
+        //[Route("register")]
+        //public async Task<IActionResult> PostAppUser([FromBody] RegisterUser RegisterUser)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
 
-            if(RegisterUser.Username == null)
-            {
-                return new StatusCodeResult(StatusCodes.Status409Conflict);
-            }
+        //    if(RegisterUser.Username == null)
+        //    {
+        //        return new StatusCodeResult(StatusCodes.Status409Conflict);
+        //    }
 
-            byte[] salt = Crypto.GenerateSalt();
-            byte[] hash = Crypto.GenerateHash(RegisterUser.Password, salt);
+        //    byte[] salt = Crypto.GenerateSalt();
+        //    byte[] hash = Crypto.GenerateHash(RegisterUser.Password, salt);
 
-            AppUser AppUser = new AppUser(RegisterUser, hash, salt);
+        //    AppUser AppUser = new AppUser(RegisterUser, hash, salt);
 
-            TryValidateModel(AppUser);
+        //    TryValidateModel(AppUser);
 
-            if(ModelState.IsValid)
-            {
-                _context.AppUser.Add(AppUser);
+        //    if(ModelState.IsValid)
+        //    {
+        //        _context.AppUser.Add(AppUser);
 
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
-                    if (AppUserExists(AppUser.Username))
-                    {
-                        return new StatusCodeResult(StatusCodes.Status409Conflict);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+        //        try
+        //        {
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateException)
+        //        {
+        //            if (AppUserExists(AppUser.Username))
+        //            {
+        //                return new StatusCodeResult(StatusCodes.Status409Conflict);
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
 
-                var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
-                loginSuccess.Token = Crypto.GenerateJSONWebToken(AppUser, _appSettings);
-                return Ok(loginSuccess);
-            }
+        //        var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
+        //        return Ok(loginSuccess);
+        //    }
 
-            return BadRequest();
+        //    return BadRequest();
             
-        }
+        //}
         
         // POST: api/users/authenticate
         [AllowAnonymous]
@@ -106,7 +105,6 @@ namespace Housing.WebAPI.Controllers
             if (Crypto.CheckHash(password, appUser.PassSalt, appUser.PassHash))
             {
                 var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
-                loginSuccess.Token = Crypto.GenerateJSONWebToken(appUser, _appSettings);
                 return Ok(loginSuccess);
             }
 
@@ -115,26 +113,26 @@ namespace Housing.WebAPI.Controllers
 
         // GET: api/users/username
         // Users can only retrieve their creds with this api call
-        ////////[Authorize]
-        ////////[HttpGet("{id}")]
-        ////////public async Task<IActionResult> GetAppUser([FromRoute] string id)
-        ////////{
-        ////////    if (!ModelState.IsValid)
-        ////////    {
-        ////////        return BadRequest(ModelState);
-        ////////    }
-            
-        ////////    var userCp = HttpContext.User;
-        ////////    var appUser = await _context.AppUser.FindAsync(id);
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAppUser([FromRoute] string id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        ////////    if (appUser == null || !TokenVerifier.CheckUser(userCp, id))
-        ////////    {
-        ////////        return NotFound();
-        ////////    }
+            var usercp = HttpContext.User;
+            var appuser = await _context.AppUser.FindAsync(id);
 
-        ////////    var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
-        ////////    return Ok(loginSuccess);
-        ////////}
+            if (appuser == null || !TokenVerifier.CheckUser(usercp, id))
+            {
+                return NotFound();
+            }
+
+            var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appuser);
+            return Ok(loginSuccess);
+        }
 
         //// PUT: api/users/5
         //[HttpPut("{id}")]
@@ -170,7 +168,7 @@ namespace Housing.WebAPI.Controllers
 
         //    return NoContent();
         //}
-        
+
         // DELETE: api/users/username
         [Authorize]
         [HttpDelete("{id}")]

@@ -94,7 +94,9 @@ namespace Housing.WebAPI.Controllers
             if (TokenVerifier.CheckOfficer(userCp))
             {
                 Rejection rejection = _mapper.Map<BasicRejection, Rejection>(addRejection);
-
+                rejection.PropertyRef = id;
+                rejection.Timestamp = DateTime.Now;
+          
                 if(!TryValidateModel(rejection))
                 {
                     return BadRequest();

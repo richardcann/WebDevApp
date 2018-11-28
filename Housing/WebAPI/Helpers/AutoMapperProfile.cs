@@ -49,8 +49,7 @@ namespace WebApi.Helpers
                 }
                 ));
 
-            CreateMap<AppUser, LoginSuccess>()
-                   .ForMember(a => a.Token, opt => opt.Ignore());
+            CreateMap<AppUser, LoginSuccess>();
             
             CreateMap<AddProperty, Property>()
                 .ForMember(a => a.Images, opt => opt.Ignore());
