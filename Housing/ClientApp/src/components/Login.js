@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import { userActions } from '../store/actions';
+import { withCookies } from 'react-cookie';
 
 class Login extends React.Component {
   constructor(props) {
@@ -38,8 +39,9 @@ class Login extends React.Component {
   }
 
   render() {
-    const { loggingIn } = this.props;
+    const { loggingIn, cookies } = this.props;
     const { username, password, submitted } = this.state;
+    console.log(cookies.get('Token'));
     return (
       <div>
         <h2>Login</h2>
@@ -114,6 +116,7 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(
+  withCookies,
   mapStateToProps,
   mapDispatchToProps
 )(Login);
