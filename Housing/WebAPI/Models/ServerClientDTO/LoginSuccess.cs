@@ -13,6 +13,5 @@ namespace Housing.WebAPI.Models.InternalDTO
         public string LastName { get; set; }
         public UserRole Role { get; set; }
         public string Email { get; set; }
-        public string Token { get; set; }
     }
 }

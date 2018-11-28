@@ -42,6 +42,7 @@ namespace Housing.WebAPI.Models
         public UserRole Role { get; set; }
         [Required]
         [EmailAddress]
+        [StringLength(80)]
         public string Email { get; set; }
         [Required]
         public byte[] PassHash { get; set; }
