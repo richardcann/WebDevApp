@@ -1,15 +1,15 @@
 import React from 'react';
-import PropertyForm from './';
-import { exampleProperty } from '../sampleConstants';
+import MessageModel from './';
 import ReactDOM from 'react-dom';
 
 it('renders without crashing', () => {
   const div = document.createElement('div');
   ReactDOM.render(
-    <PropertyForm
+    <MessageModel
       visible={true}
       onCancel={() => {}}
-      property={exampleProperty}
+      onSubmit={() => {}}
+      title={'testTitle'}
     />,
     div
   );

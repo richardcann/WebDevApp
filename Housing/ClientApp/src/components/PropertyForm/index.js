@@ -79,22 +79,35 @@ class Demo extends React.Component {
           </FormItem>
           <FormItem {...formItemLayout} label="City">
             {getFieldDecorator('city', {
-              required: true,
-              message: 'Please input city',
+              rules: [
+                {
+                  required: true,
+                  message: 'Please input city'
+                }
+              ],
               initialValue: city
             })(<Input />)}
           </FormItem>
           <FormItem {...formItemLayout} label="County">
             {getFieldDecorator('county', {
-              required: true,
-              message: 'Please input county',
+              rules: [
+                {
+                  required: true,
+                  message: 'Please input county'
+                }
+              ],
               initialValue: county
             })(<Input />)}
           </FormItem>
           <FormItem {...formItemLayout} label="Postcode">
             {getFieldDecorator('postcode', {
-              required: true,
-              message: 'Please input postcode',
+              rules: [
+                {
+                  required: true,
+                  message: 'Please input postcode',
+                  pattern: /^[A-Za-za-z]{2}\d{1,2}\s*\d[A-Za-za-z]{2}$/
+                }
+              ],
               initialValue: postcode
             })(<Input />)}
           </FormItem>
@@ -105,8 +118,9 @@ class Demo extends React.Component {
                 {
                   required: true,
                   message:
-                    'Please input property description under 200 characters',
-                  max: 200
+                    'Please input property description between 50 and 200 characters',
+                  max: 200,
+                  min: 50
                 }
               ],
               initialValue: currentDescription
@@ -118,7 +132,13 @@ class Demo extends React.Component {
               valuePropName: 'fileList',
               getValueFromEvent: this.normFile
             })(
-              <Upload name="logo" action="/upload.do" listType="picture">
+              <Upload
+                name="logo"
+                action={f => {
+                  return Promise.resolve();
+                }}
+                listType="picture"
+              >
                 <Button>
                   <Icon type="upload" /> Click to upload
                 </Button>

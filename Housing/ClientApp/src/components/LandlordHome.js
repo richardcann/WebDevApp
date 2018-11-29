@@ -6,11 +6,6 @@ import { connect } from 'react-redux';
 import PropertyCard from './PropertyCard';
 import PropertyForm from './PropertyForm';
 import MessageModal from './MessageModal';
-import {
-  exampleProperty,
-  disapprovedProperty,
-  pendingProperty
-} from './sampleConstants';
 import { Tag, Button, Alert } from 'antd';
 import { landlordActions } from '../store/actions';
 import LoadingIndicator from './LoadingIndicator';
