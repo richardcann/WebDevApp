@@ -90,7 +90,7 @@ namespace Housing.Pages
                 ErrorMessage = "";
                 var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
                 Response.Cookies.Append("Token", Crypto.GenerateJSONWebToken(AppUser, _appSettings));
-                return Redirect("/login");
+                return Redirect("/");
             }
 
             if(AppUser.Username.Length< 3 || AppUser.Username.Length> 30){

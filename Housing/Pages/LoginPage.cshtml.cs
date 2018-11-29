@@ -52,7 +52,7 @@ namespace Housing.Pages
             {
                 var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(appUser);
                 Response.Cookies.Append("Token", Crypto.GenerateJSONWebToken(appUser, _appSettings));
-                return Redirect("/");
+                return LocalRedirect("/");
             }
 
             return Page();
