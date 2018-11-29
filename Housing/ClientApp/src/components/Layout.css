@@ -1,6 +1,7 @@
 .layout_container {
   display: flex;
   flex-flow: column wrap;
+  background: whitesmoke;
 }
 
 .layout_body {

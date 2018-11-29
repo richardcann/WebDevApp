@@ -64,18 +64,6 @@ class Demo extends React.Component {
         onOk={this.handleSubmit}
       >
         <Form>
-          {/*<FormItem {...formItemLayout} label="Title">
-            {getFieldDecorator('title', {
-              rules: [
-                {
-                  required: true,
-                  message: 'Please input property title',
-                  max: 50
-                }
-              ],
-              initialValue: currentTitle
-            })(<Input />)}
-          </FormItem>*/}
           <FormItem {...formItemLayout} label="Address">
             {getFieldDecorator('addressLine1', {
               rules: [
