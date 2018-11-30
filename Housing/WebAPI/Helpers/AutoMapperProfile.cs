@@ -56,6 +56,11 @@ namespace WebApi.Helpers
             CreateMap<BasicImage, Image>();
             CreateMap<BasicRejection, Rejection>();
 
+            CreateMap<BPImages, Property>()
+                 .ForMember(p => p.AppUserRef, o => o.ResolveUsing(b => b.Landlord.Username));
+            CreateMap<BPIRejections, Property>()
+                 .ForMember(p => p.AppUserRef, o => o.ResolveUsing(b => b.Landlord.Username));
+
         }
 
         private static List<string> ResolveImages(List<BasicImage> basicImages)

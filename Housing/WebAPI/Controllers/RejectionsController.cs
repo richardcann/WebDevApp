@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Housing.WebAPI.Utils;
 using Housing.WebAPI.Models.ClientServerDTO;
 using AutoMapper;
+using Housing.WebAPI.Services;
 
 namespace Housing.WebAPI.Controllers
 {
@@ -37,7 +38,7 @@ namespace Housing.WebAPI.Controllers
 
         // GET: api/Rejections/pid/5
         [HttpGet("pid/{id}")]
-        public IActionResult GetRejection([FromRoute] int id)
+        public async Task<IActionResult> GetRejection([FromRoute] int id)
         {
             if (!ModelState.IsValid)
             {
@@ -46,22 +47,16 @@ namespace Housing.WebAPI.Controllers
             
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
-            var property = _context.Property.Where(p => p.ID == id).FirstOrDefault();
 
-            if (property == null)
-            {
-                return NotFound();
-            }
-
+            PropertyService ps = new PropertyService(_mapper, _context);
+            Property property = await ps.Get(id);
+            
             List<Rejection> rejection = null;
                 
             if (TokenVerifier.CheckOfficer(userCp) || landlord == property.AppUserRef)
             {
-                rejection = _context.
-                Rejection.
-                Where(p => p.ID == id).
-                OrderByDescending(p => p.Timestamp).
-                ToList();
+                RejectionService rs = new RejectionService(_mapper, _context);
+                rejection = rs.GetRejections(id);
             } else
             {
                 return Unauthorized();
@@ -84,7 +79,8 @@ namespace Housing.WebAPI.Controllers
             //Check all attributes are there? Will the binding be successful?
 
             var userCp = HttpContext.User;
-            var property = await _context.Property.FindAsync(id);
+            PropertyService ps = new PropertyService(_mapper, _context);
+            Property property = await ps.Get(id);
 
             if (property == null)
             {
@@ -93,6 +89,7 @@ namespace Housing.WebAPI.Controllers
             
             if (TokenVerifier.CheckOfficer(userCp))
             {
+                RejectionService rs = new RejectionService(_mapper, _context);
                 Rejection rejection = _mapper.Map<BasicRejection, Rejection>(addRejection);
                 rejection.PropertyRef = id;
                 rejection.Timestamp = DateTime.Now;
@@ -102,12 +99,9 @@ namespace Housing.WebAPI.Controllers
                     return BadRequest();
                 }
 
-                _context.Rejection.Add(rejection);
-
-                property.PropertyStatus = Property.VerificationStatus.Rejected;
-                property.Timestamp = DateTime.Now;
-
-                await _context.SaveChangesAsync();
+                ps.Reject(id);
+                rs.Add(rejection);
+                
                 return Ok();
             }
             return Unauthorized();
@@ -183,10 +177,6 @@ namespace Housing.WebAPI.Controllers
 
         //    return Ok(rejection);
         //}
-
-        private bool RejectionExists(int id)
-        {
-            return _context.Rejection.Any(e => e.ID == id);
-        }
+        
     }
 }
