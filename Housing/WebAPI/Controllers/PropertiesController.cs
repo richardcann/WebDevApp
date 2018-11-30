@@ -12,6 +12,7 @@ using Housing.WebAPI.Utils;
 using Housing.WebAPI.Models.ClientServerDTO;
 using System.Net.Http;
 using System.Net;
+using Housing.WebAPI.Services;
 
 namespace Housing.WebAPI.Controllers
 {
@@ -34,21 +35,12 @@ namespace Housing.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("approved")]
-        public IEnumerable<BasicProperty> GetApproved()
+        public IActionResult GetApproved()
         {
-            return GetProperties(Property.VerificationStatus.Approved);
+            PropertyService ps = new PropertyService(_mapper, _context);
+            return Ok(ps.GetProperties(Property.VerificationStatus.Approved));
         }
-
-        //Why would this (general rejection) method be needed?
-        // GET: api/Properties/rejected
-        //[HttpGet]
-        //[Route("rejected")]
-        //public IEnumerable<BasicProperty> GetRejected()
-        //{
-        //    return getProperties(Property.VerificationStatus.Rejected);
-        //}
-
-        // GET: api/properties/pending
+        
         // Useful for officer to approve
         [Authorize]
         [HttpGet]
@@ -58,7 +50,8 @@ namespace Housing.WebAPI.Controllers
             var userCp = HttpContext.User;
             if (TokenVerifier.CheckOfficer(userCp))
             {
-                return Ok(GetProperties(Property.VerificationStatus.Pending));
+                PropertyService ps = new PropertyService(_mapper, _context);
+                return Ok(ps.GetProperties(Property.VerificationStatus.Pending));
             }
             return Unauthorized();
         }
@@ -73,7 +66,8 @@ namespace Housing.WebAPI.Controllers
             string landlord = TokenVerifier.GetLandlord(userCp);
             if (landlord != null)
             {
-                return Ok(GetMyProperties(landlord));
+                PropertyService ps = new PropertyService(_mapper, _context);
+                return Ok(ps.GetMyProperties(landlord));
             }
             return NotFound();
         }
@@ -88,8 +82,9 @@ namespace Housing.WebAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-            
-            var property = await _context.Property.FindAsync(id);
+
+            PropertyService ps = new PropertyService(_mapper, _context);
+            var property = await ps.Get(id);
 
             if (property == null)
             {
@@ -101,12 +96,11 @@ namespace Housing.WebAPI.Controllers
             
             if (landlord == property.AppUserRef)
             {
-                return Ok(GetMyPropertyByID(id, landlord));
+                return Ok(ps.GetMyPropertyByID(id, landlord));
             } else
             {
-                return Ok(GetPropertyByID(id));
+                return Ok(ps.GetPropertyByID(id));
             }
-
         }
 
         // POST: api/properties/approve/{id}
@@ -123,26 +117,13 @@ namespace Housing.WebAPI.Controllers
             //Check all attributes are there? Will the binding be successful?
 
             var userCp = HttpContext.User;
-            var property = await _context.Property.FindAsync(id);
+            PropertyService ps = new PropertyService(_mapper, _context);
 
-            if (property == null)
+            if (TokenVerifier.CheckOfficer(userCp) && await ps.Get(id) != null)
             {
-                return NotFound();
-            }
-
-            if (TokenVerifier.CheckOfficer(userCp))
-            {
-                property.PropertyStatus = Property.VerificationStatus.Approved;
-                property.Timestamp = DateTime.Now;
-
-                List<Rejection> rejections = _context.Rejection.Where(i => i.PropertyRef == id).ToList();
-                foreach(Rejection r in rejections)
-                {
-                    _context.Rejection.Remove(r);
-                }
-
-                await _context.SaveChangesAsync();
-
+                RejectionService rs = new RejectionService(_mapper, _context);
+                rs.RemovePropertyRejections(id);
+                ps.Approve(id);
                 return Ok();
             }
             return Unauthorized();
@@ -161,14 +142,10 @@ namespace Housing.WebAPI.Controllers
 
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
+
+            PropertyService ps = new PropertyService(_mapper, _context);
+            Property currentProperty = await ps.Get(id);
             
-            Property currentProperty = await _context.Property.FindAsync(id);
-
-            if (currentProperty == null)
-            {
-                return NotFound();
-            }
-
             if (landlord == null || landlord != currentProperty.AppUserRef)
             {
                 return Unauthorized();
@@ -184,56 +161,14 @@ namespace Housing.WebAPI.Controllers
             {
                 return BadRequest();
             }
-
-            List<BasicImage> images = new List<BasicImage>();
-
-            int imgCount = 0;
-            foreach (string imageStr in addProperty.Images)
-            {
-                BasicImage bi = WriteImage(imageStr, imgCount);
-
-                if (bi != null)
-                {
-                    images.Add(bi);
-                    imgCount++;
-                }
-                else
-                {
-                    CleanImages(images);
-                    return BadRequest();
-                }
-            }
-
-            List<Image> oldImages = _context.Image.Where(i => i.PropertyRef == id).ToList();
-            List<BasicImage> oldBasicImages = _mapper.Map<List<Image>, List<BasicImage>>(oldImages);
             
-            //From DB
-            foreach (Image i in oldImages)
+            ImageService ims = new ImageService(_mapper, _context);
+            if(!ims.Update(id, addProperty.Images))
             {
-                _context.Image.Remove(i);
+                return BadRequest();
             }
 
-            //From disk
-            CleanImages(oldBasicImages);
-            
-            currentProperty.AddressLine1 = addProperty.AddressLine1;
-            currentProperty.AddressLine2 = addProperty.AddressLine2;
-            currentProperty.City = addProperty.City;
-            currentProperty.County = addProperty.County;
-            currentProperty.Postcode = addProperty.Postcode;
-            currentProperty.Longitude = addProperty.Longitude;
-            currentProperty.Latitude = addProperty.Latitude;
-            currentProperty.PropertyDescription = addProperty.PropertyDescription;
-            currentProperty.PropertyStatus = Property.VerificationStatus.Pending;
-
-            foreach (BasicImage bi in images)
-            {
-                bi.PropertyRef = currentProperty.ID;
-                Image im = _mapper.Map<BasicImage, Image>(bi);
-                _context.Image.Add(im);
-            }
-
-            await _context.SaveChangesAsync();
+            ps.Update(id, newproperty);
             return Ok();
         }
 
@@ -264,87 +199,30 @@ namespace Housing.WebAPI.Controllers
 
             List<BasicImage> images = new List<BasicImage>();
 
-            int imgCount = 0;
-            foreach (string imageStr in addProperty.Images)
+            ImageService ims = new ImageService(_mapper, _context);
+
+            if (ims.AddAll(property.ID, addProperty.Images))
             {
-                BasicImage bi = WriteImage(imageStr, imgCount);
-
-                if(bi != null)
-                {
-                    images.Add(bi);
-                    imgCount++;
-                } else
-                {
-                    CleanImages(images);
-                    return BadRequest();
-                }
-            }
-
-            //All Images are valid and added
-            _context.Property.Add(property);
-            foreach (BasicImage bi in images)
-            {
-                bi.PropertyRef = property.ID;
-                Image im = _mapper.Map<BasicImage, Image>(bi);
-                _context.Image.Add(im);
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-
-        private static BasicImage WriteImage(string imageStr, int imgCount)
-        {
-            //Block injection attempt
-            if (imageStr.IndexOf("data:image/") != 0)
-            {
-                return null;
-            }
-
-            int pStart = imageStr.IndexOf("data:image/") + "data:image/".Length;
-            int pEnd = imageStr.IndexOf(";");
-            string mime = imageStr.Substring(pStart, pEnd - pStart);
-
-            //Only allowing these types of files to be uploaded
-            //otherwise completely reject
-            //image/jpeg
-            //image/png
-
-            if (mime == "jpeg" || mime == "png")
-            {
-                string b64Content = imageStr.Substring(pStart + mime.Length + ";base64,".Length);
-                byte[] imageBytes = Convert.FromBase64String(b64Content);
-                string fileext = "." + mime;
-                string guid = Guid.NewGuid().ToString();
-                string pathUID = guid + fileext;
-
-                System.IO.File.WriteAllBytes("c:\\temp\\" + pathUID, imageBytes);
-
-                BasicImage bi = new BasicImage
-                {
-                    //Initialise as -1 prior to autogeneration of PropertyID image is bound to
-                    PropertyRef = -1,
-                    Position = ++imgCount,
-                    Path = pathUID
-                };
-
-                return bi;
+                PropertyService ps = new PropertyService(_mapper, _context);
+                await ps.Add(property);
             } else
             {
-                return null;
+                return BadRequest();
             }
-  
-        }
+                
+            ////All Images are valid and added
+            //_context.Property.Add(property);
+            //foreach (BasicImage bi in images)
+            //{
+            //    bi.PropertyRef = property.ID;
+            //    Image im = _mapper.Map<BasicImage, Image>(bi);
+            //    _context.Image.Add(im);
+            //}
 
-        private static void CleanImages(List<BasicImage> images)
-        {
-            foreach (BasicImage bi in images)
-            {
-                string filePath = "c:\\temp\\" + bi.Path;
-                System.IO.File.Delete(filePath);
-            }
+           
+            return Ok();
         }
-
+        
         // DELETE: api/properties/propertyid
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProperty([FromRoute] int id)
@@ -353,137 +231,24 @@ namespace Housing.WebAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-
+            
             var userCp = HttpContext.User;
             string landlord = TokenVerifier.GetLandlord(userCp);
-            var property = await _context.Property.FindAsync(id);
 
-            if (property == null)
-            {
-                return NotFound();
-            }
-
+            PropertyService ps = new PropertyService(_mapper, _context);
+            Property property = await ps.Get(id);
+            
             if (landlord == property.AppUserRef)
             {
-                _context.Property.Remove(property);
-                await _context.SaveChangesAsync();
-
+                ImageService ims = new ImageService(_mapper, _context);
+                ims.DeleteAll(id);
+                ps.Remove(id);
                 return Ok();
             }
 
             return Unauthorized();
         }
-
-        private bool PropertyExists(int id)
-        {
-            return _context.Property.Any(e => e.ID == id);
-        }
-
-        private IEnumerable<BPImages> GetProperties(Property.VerificationStatus status)
-        {
-            IEnumerable<BPBasicImages> toImageResolve = _context
-                .Property
-                .Where(p => p.PropertyStatus == status)
-                .Select(p => new BPBasicImages
-                {
-                    ID = p.ID,
-                    AddressLine1 = p.AddressLine1,
-                    AddressLine2 = p.AddressLine2,
-                    City = p.City,
-                    County = p.County,
-                    Postcode = p.Postcode,
-                    Latitude = p.Latitude,
-                    Longitude = p.Longitude,
-                    PropertyDescription = p.PropertyDescription,
-                    Timestamp = p.Timestamp,
-                    Landlord = _mapper.Map<AppUser, BasicAppUser>(p.AppUser),
-                    Images = _mapper.Map<ICollection<Image>, List<BasicImage>>(p.Images)
-                })
-                .OrderByDescending(p => p.Timestamp)
-                .ToList();
-
-            return _mapper.Map<IEnumerable<BPBasicImages>, IEnumerable<BPImages>>(toImageResolve);
-        }
-
-        private List<BPIRejections> GetMyProperties(string username)
-        {
-            List<BPBIRejections> toImageResolve =_context
-                .Property
-                .Select(p => new BPBIRejections
-                {
-                    ID = p.ID,
-                    AddressLine1 = p.AddressLine1,
-                    AddressLine2 = p.AddressLine2,
-                    City = p.City,
-                    County = p.County,
-                    Postcode = p.Postcode,
-                    Latitude = p.Latitude,
-                    Longitude = p.Longitude,
-                    PropertyDescription = p.PropertyDescription,
-                    PropertyStatus = p.PropertyStatus,
-                    Timestamp = p.Timestamp,
-                    Landlord = _mapper.Map<AppUser, BasicAppUser>(p.AppUser),
-                    Images = _mapper.Map<ICollection<Image>, List<BasicImage>>(p.Images),
-                    Rejections = _mapper.Map<ICollection<Rejection>, List<BasicRejection>>(p.Rejections)
-                })
-                .Where(p => p.Landlord.Username == username)
-                .OrderByDescending(p => p.Timestamp)
-                .ToList();
-
-            return _mapper.Map<List<BPBIRejections>, List<BPIRejections>>(toImageResolve);
-        }
-
-        private BPImages GetPropertyByID(int id)
-        {
-            BPBasicImages toImageResolve = _context
-                 .Property
-                 .Select(p => new BPBasicImages
-                 {
-                     ID = p.ID,
-                     AddressLine1 = p.AddressLine1,
-                     AddressLine2 = p.AddressLine2,
-                     City = p.City,
-                     County = p.County,
-                     Postcode = p.Postcode,
-                     Latitude = p.Latitude,
-                     Longitude = p.Longitude,
-                     PropertyDescription = p.PropertyDescription,
-                     Timestamp = p.Timestamp,
-                     Landlord = _mapper.Map<AppUser, BasicAppUser>(p.AppUser),
-                     Images = _mapper.Map<ICollection<Image>, List<BasicImage>>(p.Images)
-                 })
-                .Where(p => p.ID == id)
-                .FirstOrDefault();
-            
-            return _mapper.Map<BPBasicImages, BPImages>(toImageResolve);
-        }
-
-        private BPIRejections GetMyPropertyByID(int id, string landlord)
-        {
-            BPBIRejections toImageResolve = _context
-                .Property
-                .Select(p => new BPBIRejections
-                {
-                    ID = p.ID,
-                    AddressLine1 = p.AddressLine1,
-                    AddressLine2 = p.AddressLine2,
-                    City = p.City,
-                    County = p.County,
-                    Postcode = p.Postcode,
-                    Latitude = p.Latitude,
-                    Longitude = p.Longitude,
-                    PropertyDescription = p.PropertyDescription,
-                    PropertyStatus = p.PropertyStatus,
-                    Timestamp = p.Timestamp,
-                    Landlord = _mapper.Map<AppUser, BasicAppUser>(p.AppUser),
-                    Images = _mapper.Map<ICollection<Image>, List<BasicImage>>(p.Images),
-                    Rejections = _mapper.Map<ICollection<Rejection>, List<BasicRejection>>(p.Rejections)
-                })
-                .Where(p => p.ID == id &&
-                            p.Landlord.Username == landlord)
-                .FirstOrDefault();
-
-            return _mapper.Map<BPBIRejections, BPIRejections>(toImageResolve);
-        }
+        
+ 
     }
 }

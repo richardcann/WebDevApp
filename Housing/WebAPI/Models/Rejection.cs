@@ -19,6 +19,40 @@ namespace Housing.WebAPI.Models
         [ForeignKey("Property")]
         public int PropertyRef { get; set; }
         public virtual Property Property { get; set; }
-        
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (GetType() != obj.GetType())
+            {
+                return false;
+            }
+            return Equals((Rejection)obj);
+        }
+
+        public bool Equals(Rejection obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            return (ID == obj.ID &&
+                Description == obj.Description &&
+                Timestamp == obj.Timestamp &&
+                PropertyRef == obj.PropertyRef);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ID, Description, Timestamp, PropertyRef, Property);
+        }
     }
 }

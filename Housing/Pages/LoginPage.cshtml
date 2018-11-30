@@ -44,9 +44,10 @@
 
               <input type="text" asp-for="LoginData.Username" class="form-control" placeholder="Username" required autofocus>
               <input type="password" asp-for="LoginData.Password" id="password" class="form-control" placeholder="Password" required />
-              
+
               <input class="btn btn-primary" type="submit" value="Sign in">
               <a href="/registerpage" class="btn btn-primary" type="button">Register</a>
+              <h5>@Model.ErrorMessage</h5>
           </form>
       </div> <!-- /container -->
 
