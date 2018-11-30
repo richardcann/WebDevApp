@@ -73,6 +73,11 @@ namespace Housing.Pages
                         return Page();
                     }
                 }
+
+                ErrorMessage = "";
+                var loginSuccess = _mapper.Map<AppUser, LoginSuccess>(AppUser);
+                Response.Cookies.Append("Token", Crypto.GenerateJSONWebToken(AppUser, _appSettings));
+                return Redirect("/");
             }
 
             ErrorMessage += GetErrorMessage(AppUser);

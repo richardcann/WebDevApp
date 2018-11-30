@@ -1,7 +1,10 @@
+import 'antd/lib/alert/style/css';
 import React from 'react';
 import { connect } from 'react-redux';
 import PropertyCard from './PropertyCard';
 import { studentActions } from '../store/actions';
+import LoadingIndicator from './LoadingIndicator';
+import { Alert } from 'antd';
 
 function StudentHome(props) {
   const { properties, getProperties } = props;
@@ -11,13 +14,22 @@ function StudentHome(props) {
   }
   return (
     <div>
-      {typeof properties !== 'undefined' && properties !== null
-        ? properties.map(property => {
-            return (
-              <PropertyCard id={property.id.toString()} property={property} />
-            );
-          })
-        : null}
+      {typeof properties !== 'undefined' && properties !== null ? (
+        properties.map(property => {
+          return (
+            <PropertyCard id={property.id.toString()} property={property} />
+          );
+        })
+      ) : (
+        <LoadingIndicator />
+      )}
+      {properties && properties.length === 0 ? (
+        <Alert
+          message="No Properties"
+          description="There are no properties to display."
+          type="info"
+        />
+      ) : null}
     </div>
   );
 }

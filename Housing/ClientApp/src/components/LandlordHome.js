@@ -1,17 +1,14 @@
 import 'antd/lib/tag/style/css';
 import 'antd/lib/button/style/css';
+import 'antd/lib/alert/style/css';
 import React from 'react';
 import { connect } from 'react-redux';
 import PropertyCard from './PropertyCard';
 import PropertyForm from './PropertyForm';
 import MessageModal from './MessageModal';
-import {
-  exampleProperty,
-  disapprovedProperty,
-  pendingProperty
-} from './sampleConstants';
-import { Tag, Button } from 'antd';
+import { Tag, Button, Alert } from 'antd';
 import { landlordActions } from '../store/actions';
+import LoadingIndicator from './LoadingIndicator';
 
 function LandlordHome(props) {
   const {
@@ -92,75 +89,91 @@ function LandlordHome(props) {
 
   return (
     <div>
-      <Button
-        type="primary"
-        icon="plus-circle"
-        loading={false}
-        onClick={() => {
-          addNewProperty();
-        }}
-      >
-        Add Property
-      </Button>
-      {addingProperty ? (
-        <PropertyForm
-          visible={addingProperty}
-          onCancel={onCancel}
-          onSubmit={handleNewProperty}
-        />
-      ) : null}
-      {editingProperty !== null && editingProperty >= 0 ? (
-        <PropertyForm
-          visible={editingProperty !== null && editingProperty >= 0}
-          property={
-            currentProperties ? currentProperties[editingProperty] : null
-          }
-          onCancel={cancelModal}
-          onSubmit={submitEdit}
-        />
-      ) : null}
-      {typeof showDisapproved !== 'undefined' && showDisapproved !== null ? (
-        <MessageModal
-          visible={showDisapproved !== null}
-          onCancel={hideDisapproved}
-          noEdit={true}
-          title={'Rejection Reason: '}
-          message={currentProperties[showDisapproved].rejections}
-        />
-      ) : null}
-      {currentProperties
-        ? currentProperties.map((current, index) => {
-            const color =
-              current.propertyStatus === 1 || current.propertyStatus === 2
-                ? current.propertyStatus === 2
-                  ? 'red'
-                  : 'orange'
-                : 'green';
-            return (
-              <PropertyCard
-                id={index.toString()}
-                property={current}
-                extra={
-                  <div style={style}>
-                    <Tag
-                      onClick={() => {
-                        color === 'red' ? showCurrentDisapproved(index) : null;
-                      }}
-                      color={color}
-                    >
-                      {current.propertyStatus === 1
-                        ? 'pending'
-                        : current.propertyStatus === 2
-                          ? 'rejected'
-                          : 'approved'}
-                    </Tag>
-                    <a onClick={() => handleClick(index)}>Edit</a>
-                  </div>
-                }
-              />
-            );
-          })
-        : null}
+      {currentProperties ? (
+        <div>
+          <Button
+            type="primary"
+            icon="plus-circle"
+            loading={false}
+            onClick={() => {
+              addNewProperty();
+            }}
+          >
+            Add Property
+          </Button>
+          {addingProperty ? (
+            <PropertyForm
+              visible={addingProperty}
+              onCancel={onCancel}
+              onSubmit={handleNewProperty}
+            />
+          ) : null}
+          {editingProperty !== null && editingProperty >= 0 ? (
+            <PropertyForm
+              visible={editingProperty !== null && editingProperty >= 0}
+              property={
+                currentProperties ? currentProperties[editingProperty] : null
+              }
+              onCancel={cancelModal}
+              onSubmit={submitEdit}
+            />
+          ) : null}
+          {typeof showDisapproved !== 'undefined' &&
+          showDisapproved !== null ? (
+            <MessageModal
+              visible={showDisapproved !== null}
+              onCancel={hideDisapproved}
+              noEdit={true}
+              title={'Rejection Reason: '}
+              message={currentProperties[showDisapproved].rejections}
+            />
+          ) : null}
+          {currentProperties
+            ? currentProperties.map((current, index) => {
+                const color =
+                  current.propertyStatus === 1 || current.propertyStatus === 2
+                    ? current.propertyStatus === 2
+                      ? 'red'
+                      : 'orange'
+                    : 'green';
+                return (
+                  <PropertyCard
+                    id={index.toString()}
+                    property={current}
+                    extra={
+                      <div style={style}>
+                        <Tag
+                          onClick={() => {
+                            color === 'red'
+                              ? showCurrentDisapproved(index)
+                              : null;
+                          }}
+                          color={color}
+                        >
+                          {current.propertyStatus === 1
+                            ? 'pending'
+                            : current.propertyStatus === 2
+                              ? 'rejected'
+                              : 'approved'}
+                        </Tag>
+                        <a onClick={() => handleClick(index)}>Edit</a>
+                      </div>
+                    }
+                  />
+                );
+              })
+            : null}
+          {currentProperties && currentProperties.length === 0 ? (
+            <Alert
+              message="No Properties"
+              description="There are no properties to display."
+              type="info"
+            />
+          ) : null}
+        </div>
+      ) : (
+        <LoadingIndicator />
+      )}
     </div>
   );
 }

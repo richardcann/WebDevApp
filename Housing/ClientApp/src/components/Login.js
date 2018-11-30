@@ -3,13 +3,14 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import { userActions } from '../store/actions';
-//import { withCookies } from 'react-cookie';
+import { userHelper } from '../store/helpers/userHelper';
 
 class Login extends React.Component {
   constructor(props) {
     super(props);
 
     // reset login status
+    console.log('login logout');
     this.props.logout();
 
     this.state = {
@@ -39,10 +40,13 @@ class Login extends React.Component {
   }
 
   render() {
-    const { loggingIn } = this.props;
+    const { loggingIn, setUser } = this.props;
     const { username, password, submitted } = this.state;
-    console.log(localStorage.getItem('Token'));
-    console.log(document.cookie);
+    const token = document.cookie.split('Token=')[1];
+    userHelper.getUser(token).then(data => {
+      localStorage.setItem('user', JSON.stringify({ ...data, token }));
+      setUser({ ...data, token });
+    });
     return (
       <div>
         <h2>Login</h2>
@@ -112,6 +116,9 @@ const mapDispatchToProps = dispatch => {
     },
     logout: () => {
       dispatch(userActions.logout());
+    },
+    setUser: user => {
+      dispatch(userActions.setUser(user));
     }
   };
 };

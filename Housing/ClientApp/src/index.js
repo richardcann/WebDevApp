@@ -9,7 +9,6 @@ import { createBrowserHistory } from 'history';
 import configureStore from './store/configureStore';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
-import { CookiesProvider } from 'react-cookie';
 
 // Create browser history to use in the Redux store
 /*const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
@@ -19,7 +18,8 @@ import { configureFakeBackend } from './store/helpers/fakeBackend';
 
 // Get the application-wide store instance, prepopulating with state from the server where available.
 const initialState = window.initialReduxState;
-const store = configureStore(history, initialState);
+const cookie = document.cookie.split('Token=')[1];
+const store = configureStore(history, { ...initialState, users: { cookie } });
 localStorage.clear();
 
 const rootElement = document.getElementById('root');
