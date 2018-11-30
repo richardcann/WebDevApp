@@ -1,38 +1,28 @@
 const requestWeatherForecastsType = 'REQUEST_WEATHER_FORECASTS';
 const receiveWeatherForecastsType = 'RECEIVE_WEATHER_FORECASTS';
 
-export const changeMain = text => {
-  return {
-    type: 'CHANGE_MAIN',
-    text
-  }
-};
+export const changeMain = text => ({
+  type: 'CHANGE_MAIN',
+  text
+});
 
-export const changeSide = text => {
-  return {
-    type: 'CHANGE_SIDE',
-    text
-  }
-};
+export const changeSide = text => ({
+  type: 'CHANGE_SIDE',
+  text
+});
 
-export const changeDrink = text => {
-  return {
-    type: 'CHANGE_DRINK',
-    text
-  }
-};
+export const changeDrink = text => ({
+  type: 'CHANGE_DRINK',
+  text
+});
 
-export const increment = () => {
-  return {
-    type: 'INCREMENT_COUNT'
-  }
-};
+export const increment = () => ({
+  type: 'INCREMENT_COUNT'
+});
 
-export const decrement = () => {
-  return {
-    type: 'DECREMENT_COUNT'
-  }
-};
+export const decrement = () => ({
+  type: 'DECREMENT_COUNT'
+});
 
 export const actionCreators = {
   requestWeatherForecasts: startDateIndex => async (dispatch, getState) => {
