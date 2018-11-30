@@ -3,21 +3,6 @@ import { Route, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Home from './Home';
 
-/*export const PrivateRoute = ({ component: Component, ...rest }) => (
-  <Route
-    {...rest}
-    render={props =>
-      localStorage.getItem('user') ? (
-        <Component {...props} />
-      ) : (
-        <Redirect
-          to={{ pathname: '/login', state: { from: props.location } }}
-        />
-      )
-    }
-  />
-);*/
-
 function PrivateRoute(props) {
   const { component: Component, rest, loggedIn, loggingIn, cookie } = props;
   console.log(typeof cookie !== 'undefined' && cookie && cookie.length > 0);

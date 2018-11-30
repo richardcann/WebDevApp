@@ -43,8 +43,10 @@ function OfficerHome(props) {
       ...currentProperties[index],
       propertyStatus: 0
     };
+    const propId = currentProperties[index].id;
+    currentProperties.splice(index, 1);
     setProperties(currentProperties);
-    approveCurrentProperty(currentProperties[index].id);
+    approveCurrentProperty(propId);
   };
 
   return (

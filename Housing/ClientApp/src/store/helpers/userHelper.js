@@ -1,3 +1,4 @@
+import Cookies from 'universal-cookie';
 export const userHelper = {
   login,
   logout,
@@ -139,8 +140,11 @@ function login(username, password) {
 function logout() {
   // remove user from local storage to log user out
   localStorage.removeItem('user');
-  const cookies = document.cookie.split('Token=')[0];
-  document.cookie = `${cookies} Token=""`;
+  //const cookies = document.cookie.split('Token=')[0];
+  //console.log(cookies);
+  const cookie = new Cookies();
+  cookie.remove('Token');
+  //document.cookie = `${cookies}`;
 }
 
 function getAll() {
